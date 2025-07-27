@@ -1,0 +1,6 @@
+body { font-family: Arial, sans-serif; background: #f2f2f2; }
+.container { width: 600px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; }
+input, textarea { width: 100%; margin-bottom: 10px; }
+button { padding: 5px 10px; }
+ul { list-style: none; padding: 0; }
+li { margin-bottom: 15px; }
