@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>我的日记</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="container">
+<h2>我的日记汇总</h2>
+<a href="/submit">记录新的内容</a>
+<ul>
+{% for s in summaries %}
+<li><strong>{{ s.day }}</strong><p>{{ s.summary_text }}</p></li>
+{% else %}
+<li>暂无日记</li>
+{% endfor %}
+</ul>
+</div>
+</body>
+</html>
