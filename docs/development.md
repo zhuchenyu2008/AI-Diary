@@ -160,14 +160,28 @@ DATABASE_URL=mysql+pymysql://username:password@localhost:3306/ai_diary_db
 
 # AI服务配置（至少配置一个）
 OPENAI_API_KEY=your-openai-api-key
+OPENAI_BASE_URL=https://api.openai.com/v1
+OPENAI_MODEL=gpt-3.5-turbo
+OPENAI_VISION_MODEL=gpt-4-vision-preview
 ANTHROPIC_API_KEY=your-anthropic-api-key
+ANTHROPIC_BASE_URL=https://api.anthropic.com
+ANTHROPIC_MODEL=claude-3-sonnet-20240229
+ANTHROPIC_VISION_MODEL=claude-3-vision-20240229
 GOOGLE_API_KEY=your-google-api-key
+GOOGLE_BASE_URL=https://generativelanguage.googleapis.com
+GOOGLE_MODEL=gemini-pro
+GOOGLE_VISION_MODEL=gemini-pro-vision
 
 # 存储配置（至少配置一个）
 STORAGE_TYPE=s3  # s3, oss, local
 AWS_ACCESS_KEY_ID=your-aws-access-key
 AWS_SECRET_ACCESS_KEY=your-aws-secret-key
 AWS_S3_BUCKET=your-bucket-name
+# 阿里云OSS，可选
+OSS_ACCESS_KEY_ID=your-oss-access-key
+OSS_ACCESS_KEY_SECRET=your-oss-secret-key
+OSS_ENDPOINT=your-oss-endpoint
+OSS_BUCKET_NAME=your-oss-bucket
 ```
 
 ## 开发指南
