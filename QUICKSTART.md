@@ -79,8 +79,8 @@ uvicorn app.main:app --reload
 
 ### 7. 访问应用
 
-- **API文档**: http://localhost:8000/docs
 - **应用首页**: http://localhost:8000
+- **API文档**: http://localhost:8000/docs
 
 ## 📝 快速测试
 
@@ -135,8 +135,8 @@ docker-compose logs -f api
 
 ### 2. 访问应用
 
-- **API文档**: http://localhost:8000/docs
 - **应用首页**: http://localhost:8000
+- **API文档**: http://localhost:8000/docs
 
 ## 🔧 常见问题
 

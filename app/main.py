@@ -1,6 +1,8 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
 import os
 
 from app.core.config import settings
@@ -19,6 +21,9 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
+# 设置模板目录
+templates = Jinja2Templates(directory="app/templates")
+
 # 配置CORS
 app.add_middleware(
     CORSMiddleware,
@@ -32,6 +37,10 @@ app.add_middleware(
 if os.path.exists("uploads"):
     app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
+# 挂载前端静态资源
+if os.path.exists("app/static"):
+    app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
 # 注册路由
 app.include_router(health.router, prefix="/api/v1", tags=["health"])
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
@@ -39,14 +48,10 @@ app.include_router(moments.router, prefix="/api/v1", tags=["moments"])
 app.include_router(diaries.router, prefix="/api/v1", tags=["diaries"])
 
 
-@app.get("/")
-async def root():
-    """根路径"""
-    return {
-        "message": "AI日记应用",
-        "version": "1.0.0",
-        "docs": "/docs"
-    }
+@app.get("/", response_class=HTMLResponse)
+async def root(request: Request):
+    """应用首页"""
+    return templates.TemplateResponse("index.html", {"request": request})
 
 
 @app.get("/api/v1")

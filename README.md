@@ -64,7 +64,10 @@ docker-compose up -d
 
 ## API文档
 
-启动应用后，访问 `http://localhost:8000/docs` 查看完整的API文档。
+启动应用后，可以通过以下地址访问：
+
+- **应用首页**: `http://localhost:8000`
+- **API文档**: `http://localhost:8000/docs`
 
 ## 项目结构
 
