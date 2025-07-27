@@ -82,9 +82,11 @@ class Settings(BaseSettings):
     prometheus_enabled: bool = Field(default=True, env="PROMETHEUS_ENABLED")
     metrics_port: int = Field(default=9090, env="METRICS_PORT")
     
-    class Config:
-        env_file = ".env"
-        case_sensitive = False
+    model_config = {
+        "env_file": ".env",
+        "case_sensitive": False,
+    }
+
 
 
 # 全局配置实例
