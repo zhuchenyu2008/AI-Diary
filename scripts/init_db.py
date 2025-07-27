@@ -15,8 +15,11 @@ from app.core.config import settings
 def init_database():
     """初始化数据库"""
     print("正在初始化数据库...")
-    
+
     try:
+        # 导入所有模型，确保元数据已被填充
+        from app.models import user, moment, diary  # noqa: F401
+
         # 创建所有表
         Base.metadata.create_all(bind=engine)
         print("✓ 数据库表创建成功")
