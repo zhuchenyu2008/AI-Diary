@@ -13,6 +13,7 @@ pip install -r requirements.txt
 2. 创建数据库并初始化表结构：
 
 ```python
+python
 import db
 db.init_db()
 ```
