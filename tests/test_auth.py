@@ -1,8 +1,14 @@
+import os
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
+
+# 最小化环境变量，保证配置加载
+os.environ.setdefault("SECRET_KEY", "test-secret")
+os.environ.setdefault("JWT_SECRET_KEY", "test-jwt")
+os.environ.setdefault("DATABASE_URL", "sqlite:///./test.db")
 
 from app.main import app
 from app.core.database import Base, get_db

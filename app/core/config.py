@@ -1,5 +1,6 @@
 from typing import Optional, List
-from pydantic import BaseSettings, Field
+from pydantic_settings import BaseSettings
+from pydantic import Field, field_validator
 
 
 class Settings(BaseSettings):
@@ -20,8 +21,18 @@ class Settings(BaseSettings):
     # AI服务配置
     openai_api_key: Optional[str] = Field(default=None, env="OPENAI_API_KEY")
     openai_base_url: str = Field(default="https://api.openai.com/v1", env="OPENAI_BASE_URL")
+    openai_model: str = Field(default="gpt-3.5-turbo", env="OPENAI_MODEL")
+    openai_vision_model: str = Field(default="gpt-4-vision-preview", env="OPENAI_VISION_MODEL")
+
     anthropic_api_key: Optional[str] = Field(default=None, env="ANTHROPIC_API_KEY")
+    anthropic_base_url: str = Field(default="https://api.anthropic.com", env="ANTHROPIC_BASE_URL")
+    anthropic_model: str = Field(default="claude-3-sonnet-20240229", env="ANTHROPIC_MODEL")
+    anthropic_vision_model: str = Field(default="claude-3-vision-20240229", env="ANTHROPIC_VISION_MODEL")
+
     google_api_key: Optional[str] = Field(default=None, env="GOOGLE_API_KEY")
+    google_base_url: str = Field(default="https://generativelanguage.googleapis.com", env="GOOGLE_BASE_URL")
+    google_model: str = Field(default="gemini-pro", env="GOOGLE_MODEL")
+    google_vision_model: str = Field(default="gemini-pro-vision", env="GOOGLE_VISION_MODEL")
     
     # 对象存储配置
     storage_type: str = Field(default="s3", env="STORAGE_TYPE")
@@ -52,9 +63,16 @@ class Settings(BaseSettings):
     # 文件上传配置
     max_file_size: int = Field(default=10485760, env="MAX_FILE_SIZE")  # 10MB
     allowed_image_types: List[str] = Field(
-        default=["image/jpeg", "image/png", "image/gif", "image/webp"],
-        env="ALLOWED_IMAGE_TYPES"
+        default_factory=lambda: ["image/jpeg", "image/png", "image/gif", "image/webp"],
+        env="ALLOWED_IMAGE_TYPES",
     )
+
+    @field_validator("allowed_image_types", mode="before")
+    @classmethod
+    def _split_allowed_image_types(cls, v):
+        if isinstance(v, str):
+            return [s.strip() for s in v.split(",") if s.strip()]
+        return v
     
     # 任务调度配置
     celery_broker_url: str = Field(default="redis://localhost:6379/1", env="CELERY_BROKER_URL")
@@ -64,9 +82,11 @@ class Settings(BaseSettings):
     prometheus_enabled: bool = Field(default=True, env="PROMETHEUS_ENABLED")
     metrics_port: int = Field(default=9090, env="METRICS_PORT")
     
-    class Config:
-        env_file = ".env"
-        case_sensitive = False
+    model_config = {
+        "env_file": ".env",
+        "case_sensitive": False,
+    }
+
 
 
 # 全局配置实例
