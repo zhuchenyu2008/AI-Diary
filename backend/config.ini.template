@@ -1,0 +1,21 @@
+[DEFAULT]
+# 数据库配置
+DB_HOST = localhost
+DB_USER = root
+DB_PASSWORD = your_password
+DB_NAME = ai_diary
+
+# AI模型配置
+AI_API_KEY = your_ai_api_key
+AI_MODEL_NAME = your_ai_model_name
+AI_API_BASE = http://localhost:8080/v1
+AI_PROMPT = "请根据以下事件记录，总结今天的日记："
+
+# Telegram Bot配置
+TELEGRAM_BOT_TOKEN = your_telegram_bot_token
+TELEGRAM_CHAT_ID = your_telegram_chat_id
+
+# 登录密码 (1-4位)
+LOGIN_PASSWORD = 1234
+BACKEND_PORT = 5000
+FRONTEND_PORT = 5173
