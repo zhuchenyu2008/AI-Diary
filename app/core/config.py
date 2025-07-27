@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Union
 from pydantic_settings import BaseSettings
 from pydantic import Field, field_validator
 
@@ -62,7 +62,7 @@ class Settings(BaseSettings):
     
     # 文件上传配置
     max_file_size: int = Field(default=10485760, env="MAX_FILE_SIZE")  # 10MB
-    allowed_image_types: List[str] = Field(
+    allowed_image_types: Union[List[str], str] = Field(
         default_factory=lambda: ["image/jpeg", "image/png", "image/gif", "image/webp"],
         env="ALLOWED_IMAGE_TYPES",
     )
