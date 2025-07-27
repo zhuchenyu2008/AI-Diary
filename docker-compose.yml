@@ -1,0 +1,111 @@
+version: '3.8'
+
+services:
+  # MySQL数据库
+  mysql:
+    image: mysql:8.0
+    container_name: ai_diary_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: ai_diary_db
+      MYSQL_USER: ai_diary_user
+      MYSQL_PASSWORD: ai_diary_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - ai_diary_network
+
+  # Redis缓存
+  redis:
+    image: redis:7-alpine
+    container_name: ai_diary_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - ai_diary_network
+
+  # 主应用
+  api:
+    build: .
+    container_name: ai_diary_api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=mysql+pymysql://ai_diary_user:ai_diary_password@mysql:3306/ai_diary_db
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+    volumes:
+      - ./uploads:/app/uploads
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - ai_diary_network
+
+  # Celery工作进程
+  celery_worker:
+    build: .
+    container_name: ai_diary_celery_worker
+    restart: unless-stopped
+    command: celery -A app.celery_app worker --loglevel=info
+    environment:
+      - DATABASE_URL=mysql+pymysql://ai_diary_user:ai_diary_password@mysql:3306/ai_diary_db
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - ai_diary_network
+
+  # Celery定时任务
+  celery_beat:
+    build: .
+    container_name: ai_diary_celery_beat
+    restart: unless-stopped
+    command: celery -A app.celery_app beat --loglevel=info
+    environment:
+      - DATABASE_URL=mysql+pymysql://ai_diary_user:ai_diary_password@mysql:3306/ai_diary_db
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - ai_diary_network
+
+  # Nginx反向代理
+  nginx:
+    image: nginx:alpine
+    container_name: ai_diary_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+      - ./uploads:/var/www/uploads
+    depends_on:
+      - api
+    networks:
+      - ai_diary_network
+
+volumes:
+  mysql_data:
+  redis_data:
+
+networks:
+  ai_diary_network:
+    driver: bridge 
