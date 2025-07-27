@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8" />
+    <title>AI日记应用</title>
+    <link rel="stylesheet" href="static/styles.css" />
+</head>
+<body>
+    <h1>AI日记应用</h1>
+    <div id="auth">
+        <h2>注册</h2>
+        <form id="register-form">
+            <input name="username" placeholder="用户名" required />
+            <input name="password" type="password" placeholder="密码" required />
+            <input name="email" type="email" placeholder="邮箱(可选)" />
+            <button type="submit">注册</button>
+        </form>
+        <h2>登录</h2>
+        <form id="login-form">
+            <input name="username" placeholder="用户名" required />
+            <input name="password" type="password" placeholder="密码" required />
+            <button type="submit">登录</button>
+        </form>
+    </div>
+
+    <div id="app" style="display:none">
+        <p>当前用户: <span id="current-user"></span></p>
+        <button id="logout-btn">退出登录</button>
+
+        <h2>记录瞬间</h2>
+        <form id="moment-form">
+            <textarea name="text" placeholder="说点什么"></textarea>
+            <input type="file" name="image" accept="image/*" />
+            <button type="submit">上传</button>
+        </form>
+
+        <h2>我的瞬间</h2>
+        <ul id="moment-list"></ul>
+
+        <h2>我的日记</h2>
+        <button id="generate-diary-btn">生成今日</button>
+        <ul id="diary-list"></ul>
+    </div>
+
+    <script src="static/main.js"></script>
+</body>
+</html>

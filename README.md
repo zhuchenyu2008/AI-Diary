@@ -21,44 +21,41 @@
 - 前端：React/Vue.js（预留）
 
 ## 快速开始
+### 1. 环境准备
+确保已经安装 Python 3.8+、MySQL 8.0+，可选安装 Redis 以便任务调度。
 
-### 环境要求
-
-- Python 3.8+
-- MySQL 8.0+
-- Redis
-- Docker (可选)
-
-### 安装步骤
-
-1. 克隆项目
+### 2. 克隆项目并安装依赖
 ```bash
 git clone <repository-url>
 cd ai-diary-app
-```
-
-2. 安装依赖
-```bash
 pip install -r requirements.txt
 ```
 
-3. 配置环境变量（可在此自定义AI接口地址和模型）
+### 3. 配置环境变量
 ```bash
 cp env.example .env
-# 编辑 .env 文件，自定义数据库、AI接口地址和模型等参数
+# 按需编辑 .env 文件，至少需要配置以下关键项：
+# SECRET_KEY、JWT_SECRET_KEY、DATABASE_URL 以及至少一个 AI 服务的 API KEY
 ```
 
-4. 初始化数据库
+### 4. 初始化数据库
 ```bash
 python scripts/init_db.py
 ```
 
-5. 启动应用
+### 5. 启动应用
 ```bash
 # 开发模式
+python start.py
+# 或使用 uvicorn
 uvicorn app.main:app --reload
+```
 
-# 生产模式
+### 6. 快速测试
+注册、登录后即可通过 `/api/v1/moments` 上传瞬间，再通过 `/api/v1/diaries/summarize-today` 生成日记。
+
+### 7. Docker 方式
+```bash
 docker-compose up -d
 ```
 
