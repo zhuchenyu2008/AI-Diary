@@ -15,16 +15,22 @@ class AIService:
         # 初始化OpenAI客户端
         if settings.openai_api_key:
             openai.api_key = settings.openai_api_key
-            openai.base_url = settings.openai_base_url
+            openai.api_base = settings.openai_base_url
             self.openai_client = openai
-        
+
         # 初始化Anthropic客户端
         if settings.anthropic_api_key:
-            self.anthropic_client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
-        
+            self.anthropic_client = anthropic.Anthropic(
+                api_key=settings.anthropic_api_key,
+                base_url=settings.anthropic_base_url,
+            )
+
         # 初始化Google客户端
         if settings.google_api_key:
-            genai.configure(api_key=settings.google_api_key)
+            genai.configure(
+                api_key=settings.google_api_key,
+                client_options={"api_endpoint": settings.google_base_url},
+            )
             self.google_client = genai
     
     async def analyze_moment(self, text: Optional[str] = None, image_url: Optional[str] = None) -> str:
@@ -65,10 +71,10 @@ class AIService:
         """使用OpenAI分析"""
         try:
             if image_url:
-                # 如果有图片，使用GPT-4V
+                # 如果有图片，使用自定义视觉模型
                 response = await asyncio.to_thread(
                     self.openai_client.ChatCompletion.acreate,
-                    model="gpt-4-vision-preview",
+                    model=settings.openai_vision_model,
                     messages=[
                         {
                             "role": "user",
@@ -81,10 +87,10 @@ class AIService:
                     max_tokens=300
                 )
             else:
-                # 纯文字使用GPT-3.5
+                # 纯文字使用自定义模型
                 response = await asyncio.to_thread(
                     self.openai_client.ChatCompletion.acreate,
-                    model="gpt-3.5-turbo",
+                    model=settings.openai_model,
                     messages=[{"role": "user", "content": prompt}],
                     max_tokens=300
                 )
@@ -100,7 +106,7 @@ class AIService:
                 # Claude支持图片分析
                 response = await asyncio.to_thread(
                     self.anthropic_client.messages.create,
-                    model="claude-3-vision-20240229",
+                    model=settings.anthropic_vision_model,
                     max_tokens=300,
                     messages=[
                         {
@@ -115,7 +121,7 @@ class AIService:
             else:
                 response = await asyncio.to_thread(
                     self.anthropic_client.messages.create,
-                    model="claude-3-sonnet-20240229",
+                    model=settings.anthropic_model,
                     max_tokens=300,
                     messages=[{"role": "user", "content": prompt}]
                 )
@@ -127,7 +133,8 @@ class AIService:
     async def _analyze_with_google(self, prompt: str, image_url: Optional[str] = None) -> str:
         """使用Google Gemini分析"""
         try:
-            model = self.google_client.GenerativeModel('gemini-pro-vision' if image_url else 'gemini-pro')
+            model_name = settings.google_vision_model if image_url else settings.google_model
+            model = self.google_client.GenerativeModel(model_name)
             
             if image_url:
                 # 需要下载图片数据
@@ -174,7 +181,7 @@ class AIService:
             if self.openai_client:
                 response = await asyncio.to_thread(
                     self.openai_client.ChatCompletion.acreate,
-                    model="gpt-3.5-turbo",
+                    model=settings.openai_model,
                     messages=[{"role": "user", "content": prompt}],
                     max_tokens=800
                 )
@@ -182,13 +189,13 @@ class AIService:
             elif self.anthropic_client:
                 response = await asyncio.to_thread(
                     self.anthropic_client.messages.create,
-                    model="claude-3-sonnet-20240229",
+                    model=settings.anthropic_model,
                     max_tokens=800,
                     messages=[{"role": "user", "content": prompt}]
                 )
                 return response.content[0].text.strip()
             elif self.google_client:
-                model = self.google_client.GenerativeModel('gemini-pro')
+                model = self.google_client.GenerativeModel(settings.google_model)
                 response = await asyncio.to_thread(
                     model.generate_content,
                     prompt,

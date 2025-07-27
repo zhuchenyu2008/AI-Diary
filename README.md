@@ -42,10 +42,10 @@ cd ai-diary-app
 pip install -r requirements.txt
 ```
 
-3. 配置环境变量
+3. 配置环境变量（可在此自定义AI接口地址和模型）
 ```bash
 cp .env.example .env
-# 编辑 .env 文件，配置数据库、AI服务等参数
+# 编辑 .env 文件，自定义数据库、AI接口地址和模型等参数
 ```
 
 4. 初始化数据库
