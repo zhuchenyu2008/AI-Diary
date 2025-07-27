@@ -1,0 +1,6 @@
+Flask
+Flask-APScheduler
+mysql-connector-python
+python-dotenv
+requests
+werkzeug
