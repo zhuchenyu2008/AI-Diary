@@ -28,7 +28,7 @@ pip install -r requirements.txt
 # 复制环境变量模板
 cp env.example .env
 
-# 编辑 .env 文件，至少配置以下必需项：
+# 编辑 .env 文件，可自定义 AI 接口地址和模型，至少配置以下必需项：
 ```
 
 **必需配置项：**
@@ -42,10 +42,17 @@ DATABASE_URL=mysql+pymysql://username:password@localhost:3306/ai_diary_db
 
 # AI服务（至少配置一个）
 OPENAI_API_KEY=your-openai-api-key
-# 或者
+OPENAI_BASE_URL=https://api.openai.com/v1
+OPENAI_MODEL=gpt-3.5-turbo
+OPENAI_VISION_MODEL=gpt-4-vision-preview
+# 或者配置Anthropic
 ANTHROPIC_API_KEY=your-anthropic-api-key
-# 或者
+ANTHROPIC_MODEL=claude-3-sonnet-20240229
+ANTHROPIC_VISION_MODEL=claude-3-vision-20240229
+# 或者配置Google Gemini
 GOOGLE_API_KEY=your-google-api-key
+GOOGLE_MODEL=gemini-pro
+GOOGLE_VISION_MODEL=gemini-pro-vision
 
 # 存储配置（开发环境可以使用本地存储）
 STORAGE_TYPE=local

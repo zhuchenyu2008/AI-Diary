@@ -1,5 +1,6 @@
 from typing import Optional, List
-from pydantic import BaseSettings, Field
+from pydantic_settings import BaseSettings
+from pydantic import Field
 
 
 class Settings(BaseSettings):
@@ -20,8 +21,16 @@ class Settings(BaseSettings):
     # AI服务配置
     openai_api_key: Optional[str] = Field(default=None, env="OPENAI_API_KEY")
     openai_base_url: str = Field(default="https://api.openai.com/v1", env="OPENAI_BASE_URL")
+    openai_model: str = Field(default="gpt-3.5-turbo", env="OPENAI_MODEL")
+    openai_vision_model: str = Field(default="gpt-4-vision-preview", env="OPENAI_VISION_MODEL")
+
     anthropic_api_key: Optional[str] = Field(default=None, env="ANTHROPIC_API_KEY")
+    anthropic_model: str = Field(default="claude-3-sonnet-20240229", env="ANTHROPIC_MODEL")
+    anthropic_vision_model: str = Field(default="claude-3-vision-20240229", env="ANTHROPIC_VISION_MODEL")
+
     google_api_key: Optional[str] = Field(default=None, env="GOOGLE_API_KEY")
+    google_model: str = Field(default="gemini-pro", env="GOOGLE_MODEL")
+    google_vision_model: str = Field(default="gemini-pro-vision", env="GOOGLE_VISION_MODEL")
     
     # 对象存储配置
     storage_type: str = Field(default="s3", env="STORAGE_TYPE")
