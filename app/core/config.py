@@ -1,6 +1,6 @@
 from typing import Optional, List
 from pydantic_settings import BaseSettings
-from pydantic import Field
+from pydantic import Field, field_validator
 
 
 class Settings(BaseSettings):
@@ -63,9 +63,16 @@ class Settings(BaseSettings):
     # 文件上传配置
     max_file_size: int = Field(default=10485760, env="MAX_FILE_SIZE")  # 10MB
     allowed_image_types: List[str] = Field(
-        default=["image/jpeg", "image/png", "image/gif", "image/webp"],
-        env="ALLOWED_IMAGE_TYPES"
+        default_factory=lambda: ["image/jpeg", "image/png", "image/gif", "image/webp"],
+        env="ALLOWED_IMAGE_TYPES",
     )
+
+    @field_validator("allowed_image_types", mode="before")
+    @classmethod
+    def _split_allowed_image_types(cls, v):
+        if isinstance(v, str):
+            return [s.strip() for s in v.split(",") if s.strip()]
+        return v
     
     # 任务调度配置
     celery_broker_url: str = Field(default="redis://localhost:6379/1", env="CELERY_BROKER_URL")
