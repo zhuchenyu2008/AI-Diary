@@ -9,6 +9,19 @@ class AIService:
         self.api_url = None
         self.api_key = None
         self.model = None
+
+    def test_connection(self):
+        """测试与AI服务的连通性"""
+        # 重新加载配置
+        self._load_config()
+        if not self.client:
+            return False, "AI服务未配置"
+        try:
+            # 调用一个轻量级接口验证连接
+            self.client.models.list()
+            return True, "连接成功"
+        except Exception as e:
+            return False, f"连接异常: {str(e)}"
     
     def _load_config(self):
         """加载AI配置"""
