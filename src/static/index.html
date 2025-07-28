@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI日记</title>
+    <script type="module" crossorigin src="/assets/index-DUaNkWBt.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-oWMHbS2h.css">
+  <style>
+    #config-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.95);z-index:9999;display:none;animation:fadeIn 0.3s;}
+    @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+    #button-container{display:flex;gap:0.5rem;margin-left:auto;}
+    @media(max-width:640px){#button-container{padding-right:0.5rem;}}
+  </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <div id="config-overlay">
+      <iframe src="/config.html" style="width:100%;height:100%;border:none;"></iframe>
+    </div>
+    <script>
+      function openSettings(){document.getElementById('config-overlay').style.display='block';}
+      function closeSettings(){document.getElementById('config-overlay').style.display='none';}
+      function addSettingsButton(){
+        const logoutBtn=[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='登出');
+        if(!logoutBtn) return;
+        let wrapper=document.getElementById('button-container');
+        if(!wrapper){
+          wrapper=document.createElement('div');
+          wrapper.id='button-container';
+          logoutBtn.parentNode.insertBefore(wrapper,logoutBtn);
+        }
+        if(logoutBtn.parentNode!==wrapper){
+          wrapper.appendChild(logoutBtn);
+        }
+        let settingBtn=document.getElementById('settings-button');
+        if(!settingBtn){
+          settingBtn=logoutBtn.cloneNode(true);
+          settingBtn.id='settings-button';
+          settingBtn.textContent='设置';
+          settingBtn.addEventListener('click',openSettings);
+        }
+        if(settingBtn.parentNode!==wrapper){
+          wrapper.appendChild(settingBtn);
+        }
+      }
+      const ob=new MutationObserver(addSettingsButton);
+      ob.observe(document.getElementById('root'),{childList:true,subtree:true});
+      addSettingsButton();
+    </script>
+  </body>
+</html>
