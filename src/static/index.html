@@ -10,7 +10,7 @@
   <style>
     #config-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.95);z-index:9999;display:none;animation:fadeIn 0.3s;}
     @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
-    #button-container{display:flex;justify-content:flex-end;gap:0.5rem;}
+    #button-container{display:flex;gap:0.5rem;margin-left:auto;}
     @media(max-width:640px){#button-container{padding-right:0.5rem;}}
   </style>
   </head>
@@ -29,11 +29,18 @@
           btn.id='settings-button';
           btn.textContent='设置';
           btn.addEventListener('click',openSettings);
-          logoutBtn.parentNode.insertBefore(btn,logoutBtn.nextSibling);
+          logoutBtn.after(btn);
         }
         if(logoutBtn){
-          const container=logoutBtn.parentNode;
-          container.id='button-container';
+          let wrapper=document.getElementById('button-container');
+          if(!wrapper){
+            wrapper=document.createElement('div');
+            wrapper.id='button-container';
+            logoutBtn.parentNode.insertBefore(wrapper,logoutBtn);
+          }
+          wrapper.appendChild(logoutBtn);
+          const settingBtn=document.getElementById('settings-button');
+          if(settingBtn) wrapper.appendChild(settingBtn);
         }
       }
       const ob=new MutationObserver(addSettingsButton);
