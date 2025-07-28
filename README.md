@@ -54,8 +54,6 @@
 
 ### 环境要求
 - Python 3.8+
-- Node.js 16+
-- npm 或 yarn
 
 ### 安装步骤
 
@@ -85,24 +83,8 @@ pip install -r requirements.txt
 python src/main.py
 ```
 
-#### 3. 前端设置
-```bash
-cd diary_frontend
 
-# 安装依赖
-npm install
-
-# 开发模式启动
-npm run dev
-
-# 或构建生产版本
-npm run build
-```
-
-#### 4. 访问应用
-- 开发环境: http://localhost:3000
-- 生产环境: http://localhost:5000
-
+- 在浏览器访问 http://localhost:5000（静态文件位于 diary_backend/src/static/，无需单独构建前端）
 ### 初始配置
 
 #### 1. 登录密码
@@ -134,13 +116,6 @@ diary-app/
 │   │   └── static/        # 静态文件
 │   ├── venv/              # Python虚拟环境
 │   └── requirements.txt   # Python依赖
-├── diary_frontend/         # 前端代码
-│   ├── src/
-│   │   ├── components/    # React组件
-│   │   ├── App.jsx       # 主应用组件
-│   │   └── main.jsx      # 应用入口
-│   ├── dist/             # 构建输出
-│   └── package.json      # Node.js依赖
 ├── API_Documentation.md   # API文档
 └── README.md             # 项目说明
 ```
@@ -191,15 +166,12 @@ diary-app/
 ### 开发环境部署
 1. 按照"快速开始"步骤设置环境
 2. 后端运行在 http://localhost:5000
-3. 前端开发服务器运行在 http://localhost:3000
 
 ### 生产环境部署
 
 #### 方式一：传统部署
-1. 构建前端：`npm run build`
-2. 将构建文件复制到后端静态目录
-3. 配置反向代理（Nginx）
-4. 使用进程管理器（PM2、Supervisor）
+1. 配置反向代理（Nginx）
+2. 使用进程管理器（PM2、Supervisor）
 
 #### 方式二：Docker部署
 ```dockerfile
@@ -270,17 +242,14 @@ A: 备份 `diary_backend/src/database/app.db` 文件即可。
 
 ### 添加新功能
 1. 后端：在 `routes/` 目录添加新的路由
-2. 前端：在 `components/` 目录添加新的组件
 3. 数据库：在 `models/` 目录添加新的模型
 
 ### 代码规范
 - 后端遵循PEP 8规范
-- 前端使用ESLint和Prettier
 - 提交信息使用约定式提交格式
 
 ### 测试
 - 后端：使用pytest进行单元测试
-- 前端：使用Jest和React Testing Library
 - API：使用Postman或类似工具测试
 
 ## 贡献指南
