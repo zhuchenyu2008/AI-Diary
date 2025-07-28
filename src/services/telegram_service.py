@@ -17,9 +17,9 @@ class TelegramService:
             enabled_config = Config.query.filter_by(key='telegram_enabled').first()
             
             if token_config and chat_id_config:
-                self.bot_token = token_config.value
-                self.chat_id = chat_id_config.value
-                self.enabled = enabled_config.value.lower() == 'true' if enabled_config else False
+                self.bot_token = token_config.value.strip() if token_config.value else None
+                self.chat_id = chat_id_config.value.strip() if chat_id_config.value else None
+                self.enabled = enabled_config.value.lower() == 'true' if enabled_config and enabled_config.value else False
             else:
                 print("Telegram配置不完整")
         except Exception as e:
@@ -102,7 +102,11 @@ class TelegramService:
                 else:
                     return False, "Bot Token无效"
             else:
-                return False, f"连接失败: {response.status_code}"
+                try:
+                    err_text = response.text
+                except Exception:
+                    err_text = ''
+                return False, f"连接失败: {response.status_code} {err_text}"
                 
         except Exception as e:
             return False, f"连接异常: {str(e)}"
