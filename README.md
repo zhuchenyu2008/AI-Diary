@@ -59,8 +59,8 @@
 
 #### 1. 克隆项目
 ```bash
-git clone <repository-url>
-cd diary-app
+git clone https://github.com/zhuchenyu2008/AI-Diary
+cd AI-Diary
 ```
 
 #### 2. 后端设置
