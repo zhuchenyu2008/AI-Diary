@@ -4,56 +4,75 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>配置设置</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; animation: fadeIn .3s ease; }
-        label { display:block; margin-top:10px; }
-        input[type="text"], textarea { width: 100%; padding: 6px; margin-top: 4px; }
-        button { margin-top: 15px; padding: 8px 16px; }
-        #login-section, #config-section { max-width: 600px; margin:auto; }
+        body { padding: 20px; animation: fadeIn .3s ease; }
+        main { max-width: 800px; margin: auto; }
+        .grid {
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        .card { padding: 1.5rem; }
+        .card-header { margin-bottom: 1rem; }
+        .card-footer { margin-top: 1.5rem; }
+        #config-msg { min-height: 24px; }
         @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
     </style>
 </head>
 <body>
-<div id="login-section" style="display:none;">
-    <h2>登录</h2>
-    <label>密码
-        <input type="password" id="password" />
-    </label>
-    <button onclick="login()">登录</button>
-    <p id="login-msg" style="color:red;"></p>
-</div>
-<div id="config-section" style="display:none;">
-    <h2>系统配置</h2>
-    <button onclick="goBack()" style="float:right;">返回</button>
-    <label>AI API地址
-        <input type="text" id="ai_api_url" />
-    </label>
-    <label>AI API密钥
-        <input type="text" id="ai_api_key" />
-    </label>
-    <label>AI模型名称
-        <input type="text" id="ai_model" />
-    </label>
-    <label>AI提示词模板
-        <textarea id="ai_prompt_template" rows="3"></textarea>
-    </label>
-    <label>AI每日汇总提示词
-        <textarea id="ai_summary_prompt" rows="3"></textarea>
-    </label>
-    <label>Telegram Bot Token
-        <input type="text" id="telegram_bot_token" />
-    </label>
-    <label>Telegram Chat ID
-        <input type="text" id="telegram_chat_id" />
-    </label>
-    <label>
-        <input type="checkbox" id="telegram_enabled" /> 启用Telegram推送
-    </label>
-    <button onclick="saveConfig()">保存配置</button>
-    <button onclick="testAI()">测试AI</button>
-    <button onclick="testTelegram()">测试Telegram</button>
-    <p id="config-msg"></p>
-</div>
+<main>
+    <div id="login-section" style="display:none;">
+        <article>
+            <h2 class="card-header">登录</h2>
+            <label for="password">密码</label>
+            <input type="password" id="password" required>
+            <button onclick="login()">登录</button>
+            <p id="login-msg" style="color:red;"></p>
+        </article>
+    </div>
+
+    <div id="config-section" style="display:none;">
+        <header>
+             <button onclick="goBack()" style="float:right;">返回</button>
+            <h2>系统配置</h2>
+        </header>
+
+        <div class="grid">
+            <article class="card">
+                <h3 class="card-header">AI 设置</h3>
+                <label for="ai_api_url">AI API 地址</label>
+                <input type="text" id="ai_api_url">
+                <label for="ai_api_key">AI API 密钥</label>
+                <input type="text" id="ai_api_key">
+                <label for="ai_model">AI 模型</label>
+                <input type="text" id="ai_model">
+                <label for="ai_prompt_template">AI 提示词模板</label>
+                <textarea id="ai_prompt_template" rows="3"></textarea>
+                <label for="ai_summary_prompt">AI 每日总结提示词</label>
+                <textarea id="ai_summary_prompt" rows="3"></textarea>
+            </article>
+
+            <article class="card">
+                <h3 class="card-header">Telegram 设置</h3>
+                <label for="telegram_bot_token">Telegram Bot Token</label>
+                <input type="text" id="telegram_bot_token">
+                <label for="telegram_chat_id">Telegram Chat ID</label>
+                <input type="text" id="telegram_chat_id">
+                <label for="telegram_enabled">
+                    <input type="checkbox" id="telegram_enabled" role="switch">
+                    启用 Telegram 推送
+                </label>
+            </article>
+        </div>
+
+        <footer>
+            <button onclick="saveConfig()">保存配置</button>
+            <button class="secondary" onclick="testAI()">测试 AI</button>
+            <button class="secondary" onclick="testTelegram()">测试 Telegram</button>
+            <p id="config-msg"></p>
+        </footer>
+    </div>
+</main>
 <script>
 async function checkAuth() {
     const res = await fetch('/api/auth/check');
@@ -67,69 +86,150 @@ async function checkAuth() {
     }
 }
 async function login() {
+    const msgEl = document.getElementById('login-msg');
     const password = document.getElementById('password').value;
-    const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password })
-    });
-    const data = await res.json();
-    if (data.success) {
-        document.getElementById('login-msg').textContent = '';
-        checkAuth();
-    } else {
-        document.getElementById('login-msg').textContent = data.message || '登录失败';
+    msgEl.textContent = '';
+
+    try {
+        const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+            checkAuth();
+        } else {
+            msgEl.textContent = data.message || '登录失败';
+        }
+    } catch (error) {
+        msgEl.textContent = `发生错误: ${error.message}`;
     }
 }
+
 async function loadConfig() {
-    const res = await fetch('/api/configs');
-    const data = await res.json();
-    if (data.success) {
-        const map = {};
-        data.configs.forEach(c => map[c.key] = c.value);
-        document.getElementById('ai_api_url').value = map['ai_api_url'] || '';
-        document.getElementById('ai_api_key').value = map['ai_api_key'] || '';
-        document.getElementById('ai_model').value = map['ai_model'] || '';
-        document.getElementById('ai_prompt_template').value = map['ai_prompt_template'] || '';
-        document.getElementById('ai_summary_prompt').value = map['ai_summary_prompt'] || '';
-        document.getElementById('telegram_bot_token').value = map['telegram_bot_token'] || '';
-        document.getElementById('telegram_chat_id').value = map['telegram_chat_id'] || '';
-        document.getElementById('telegram_enabled').checked = map['telegram_enabled'] === 'true';
+    try {
+        const res = await fetch('/api/configs');
+        if (!res.ok) {
+            throw new Error(`无法加载配置: ${res.statusText}`);
+        }
+        const data = await res.json();
+        if (data.success) {
+            const map = {};
+            data.configs.forEach(c => map[c.key] = c.value);
+            document.getElementById('ai_api_url').value = map['ai_api_url'] || '';
+            document.getElementById('ai_api_key').value = map['ai_api_key'] || '';
+            document.getElementById('ai_model').value = map['ai_model'] || '';
+            document.getElementById('ai_prompt_template').value = map['ai_prompt_template'] || '';
+            document.getElementById('ai_summary_prompt').value = map['ai_summary_prompt'] || '';
+            document.getElementById('telegram_bot_token').value = map['telegram_bot_token'] || '';
+            document.getElementById('telegram_chat_id').value = map['telegram_chat_id'] || '';
+            document.getElementById('telegram_enabled').checked = map['telegram_enabled'] === 'true';
+        } else {
+            throw new Error(data.message || '加载配置失败');
+        }
+    } catch (error) {
+        const msgEl = document.getElementById('config-msg');
+        msgEl.textContent = error.message;
+        msgEl.style.color = 'red';
     }
 }
 async function saveConfig() {
-    const entries = {
-        ai_api_url: document.getElementById('ai_api_url').value,
-        ai_api_key: document.getElementById('ai_api_key').value,
-        ai_model: document.getElementById('ai_model').value,
-        ai_prompt_template: document.getElementById('ai_prompt_template').value,
-        ai_summary_prompt: document.getElementById('ai_summary_prompt').value,
-        telegram_bot_token: document.getElementById('telegram_bot_token').value,
-        telegram_chat_id: document.getElementById('telegram_chat_id').value,
-        telegram_enabled: document.getElementById('telegram_enabled').checked ? 'true' : 'false'
-    };
-    for (const [key,value] of Object.entries(entries)) {
-        await fetch('/api/configs', {
+    const msgEl = document.getElementById('config-msg');
+    const button = event.target;
+    button.disabled = true;
+    msgEl.textContent = '正在保存...';
+    msgEl.style.color = 'inherit';
+
+    try {
+        const configs = [
+            { key: 'ai_api_url', value: document.getElementById('ai_api_url').value },
+            { key: 'ai_api_key', value: document.getElementById('ai_api_key').value },
+            { key: 'ai_model', value: document.getElementById('ai_model').value },
+            { key: 'ai_prompt_template', value: document.getElementById('ai_prompt_template').value },
+            { key: 'ai_summary_prompt', value: document.getElementById('ai_summary_prompt').value },
+            { key: 'telegram_bot_token', value: document.getElementById('telegram_bot_token').value },
+            { key: 'telegram_chat_id', value: document.getElementById('telegram_chat_id').value },
+            { key: 'telegram_enabled', value: document.getElementById('telegram_enabled').checked ? 'true' : 'false' }
+        ];
+
+        const res = await fetch('/api/configs', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ key, value })
+            body: JSON.stringify(configs)
         });
+
+        const data = await res.json();
+
+        if (data.success) {
+            msgEl.textContent = '配置已成功保存！';
+            msgEl.style.color = 'green';
+        } else {
+            msgEl.textContent = `保存失败: ${data.message}`;
+            msgEl.style.color = 'red';
+        }
+    } catch (error) {
+        msgEl.textContent = `发生错误: ${error.message}`;
+        msgEl.style.color = 'red';
+    } finally {
+        button.disabled = false;
+        setTimeout(() => { msgEl.textContent = ''; }, 3000);
     }
-    document.getElementById('config-msg').textContent = '保存成功';
 }
 async function testAI() {
-    const res = await fetch('/api/admin/test-ai', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: '连接测试' })
-    });
-    const data = await res.json();
-    document.getElementById('config-msg').textContent = data.message || data.result || '';
+    const msgEl = document.getElementById('config-msg');
+    const button = event.target;
+    button.disabled = true;
+    msgEl.textContent = '正在测试 AI 连接...';
+    msgEl.style.color = 'inherit';
+
+    try {
+        const res = await fetch('/api/admin/test-ai', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: '连接测试' })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+            msgEl.textContent = `AI 测试成功: ${data.message || data.result}`;
+            msgEl.style.color = 'green';
+        } else {
+            msgEl.textContent = `AI 测试失败: ${data.message || '未知错误'}`;
+            msgEl.style.color = 'red';
+        }
+    } catch (error) {
+        msgEl.textContent = `发生错误: ${error.message}`;
+        msgEl.style.color = 'red';
+    } finally {
+        button.disabled = false;
+        setTimeout(() => { msgEl.textContent = ''; }, 5000);
+    }
 }
+
 async function testTelegram() {
-    const res = await fetch('/api/admin/test-telegram', { method: 'POST' });
-    const data = await res.json();
-    document.getElementById('config-msg').textContent = data.message;
+    const msgEl = document.getElementById('config-msg');
+    const button = event.target;
+    button.disabled = true;
+    msgEl.textContent = '正在测试 Telegram 连接...';
+    msgEl.style.color = 'inherit';
+
+    try {
+        const res = await fetch('/api/admin/test-telegram', { method: 'POST' });
+        const data = await res.json();
+        if (res.ok && data.success) {
+            msgEl.textContent = `Telegram 测试成功: ${data.message}`;
+            msgEl.style.color = 'green';
+        } else {
+            msgEl.textContent = `Telegram 测试失败: ${data.message || '未知错误'}`;
+            msgEl.style.color = 'red';
+        }
+    } catch (error) {
+        msgEl.textContent = `发生错误: ${error.message}`;
+        msgEl.style.color = 'red';
+    } finally {
+        button.disabled = false;
+        setTimeout(() => { msgEl.textContent = ''; }, 5000);
+    }
 }
 function goBack(){
     if (window.parent && window.parent.closeSettings) {
