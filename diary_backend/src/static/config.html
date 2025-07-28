@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>配置设置</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        label { display:block; margin-top:10px; }
+        input[type="text"], textarea { width: 100%; padding: 6px; margin-top: 4px; }
+        button { margin-top: 15px; padding: 8px 16px; }
+        #login-section, #config-section { max-width: 600px; margin:auto; }
+    </style>
+</head>
+<body>
+<div id="login-section" style="display:none;">
+    <h2>登录</h2>
+    <label>密码
+        <input type="password" id="password" />
+    </label>
+    <button onclick="login()">登录</button>
+    <p id="login-msg" style="color:red;"></p>
+</div>
+<div id="config-section" style="display:none;">
+    <h2>系统配置</h2>
+    <label>AI API地址
+        <input type="text" id="ai_api_url" />
+    </label>
+    <label>AI API密钥
+        <input type="text" id="ai_api_key" />
+    </label>
+    <label>AI模型名称
+        <input type="text" id="ai_model" />
+    </label>
+    <label>AI提示词模板
+        <textarea id="ai_prompt_template" rows="3"></textarea>
+    </label>
+    <label>AI每日汇总提示词
+        <textarea id="ai_summary_prompt" rows="3"></textarea>
+    </label>
+    <label>Telegram Bot Token
+        <input type="text" id="telegram_bot_token" />
+    </label>
+    <label>Telegram Chat ID
+        <input type="text" id="telegram_chat_id" />
+    </label>
+    <label>
+        <input type="checkbox" id="telegram_enabled" /> 启用Telegram推送
+    </label>
+    <button onclick="saveConfig()">保存配置</button>
+    <button onclick="testTelegram()">测试Telegram</button>
+    <p id="config-msg"></p>
+</div>
+<script>
+async function checkAuth() {
+    const res = await fetch('/api/auth/check');
+    const data = await res.json();
+    if (data.authenticated) {
+        document.getElementById('login-section').style.display = 'none';
+        document.getElementById('config-section').style.display = 'block';
+        loadConfig();
+    } else {
+        document.getElementById('login-section').style.display = 'block';
+    }
+}
+async function login() {
+    const password = document.getElementById('password').value;
+    const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+    });
+    const data = await res.json();
+    if (data.success) {
+        document.getElementById('login-msg').textContent = '';
+        checkAuth();
+    } else {
+        document.getElementById('login-msg').textContent = data.message || '登录失败';
+    }
+}
+async function loadConfig() {
+    const res = await fetch('/api/configs');
+    const data = await res.json();
+    if (data.success) {
+        const map = {};
+        data.configs.forEach(c => map[c.key] = c.value);
+        document.getElementById('ai_api_url').value = map['ai_api_url'] || '';
+        document.getElementById('ai_api_key').value = map['ai_api_key'] || '';
+        document.getElementById('ai_model').value = map['ai_model'] || '';
+        document.getElementById('ai_prompt_template').value = map['ai_prompt_template'] || '';
+        document.getElementById('ai_summary_prompt').value = map['ai_summary_prompt'] || '';
+        document.getElementById('telegram_bot_token').value = map['telegram_bot_token'] || '';
+        document.getElementById('telegram_chat_id').value = map['telegram_chat_id'] || '';
+        document.getElementById('telegram_enabled').checked = map['telegram_enabled'] === 'true';
+    }
+}
+async function saveConfig() {
+    const entries = {
+        ai_api_url: document.getElementById('ai_api_url').value,
+        ai_api_key: document.getElementById('ai_api_key').value,
+        ai_model: document.getElementById('ai_model').value,
+        ai_prompt_template: document.getElementById('ai_prompt_template').value,
+        ai_summary_prompt: document.getElementById('ai_summary_prompt').value,
+        telegram_bot_token: document.getElementById('telegram_bot_token').value,
+        telegram_chat_id: document.getElementById('telegram_chat_id').value,
+        telegram_enabled: document.getElementById('telegram_enabled').checked ? 'true' : 'false'
+    };
+    for (const [key,value] of Object.entries(entries)) {
+        await fetch('/api/configs', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key, value })
+        });
+    }
+    document.getElementById('config-msg').textContent = '保存成功';
+}
+async function testTelegram() {
+    const res = await fetch('/api/admin/test-telegram', { method: 'POST' });
+    const data = await res.json();
+    document.getElementById('config-msg').textContent = data.message;
+}
+checkAuth();
+</script>
+</body>
+</html>
