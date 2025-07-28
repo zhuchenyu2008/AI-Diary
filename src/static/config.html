@@ -110,14 +110,17 @@
 </div>
 <script>
 async function checkAuth() {
+    const loginSection = document.getElementById('login-section');
+    const configSection = document.getElementById('config-section');
     const res = await fetch('/api/auth/check');
     const data = await res.json();
     if (data.authenticated) {
-        document.getElementById('login-section').style.display = 'none';
-        document.getElementById('config-section').style.display = 'block';
+        loginSection.classList.add('hidden');
+        configSection.classList.remove('hidden');
         loadConfig();
     } else {
-        document.getElementById('login-section').style.display = 'block';
+        loginSection.classList.remove('hidden');
+        configSection.classList.add('hidden');
     }
 }
 function showToast(message, isSuccess = true) {
