@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>配置设置</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
+        body { font-family: Arial, sans-serif; padding: 20px; animation: fadeIn .3s ease; }
         label { display:block; margin-top:10px; }
         input[type="text"], textarea { width: 100%; padding: 6px; margin-top: 4px; }
         button { margin-top: 15px; padding: 8px 16px; }
         #login-section, #config-section { max-width: 600px; margin:auto; }
+        @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
     </style>
 </head>
 <body>
@@ -23,6 +24,7 @@
 </div>
 <div id="config-section" style="display:none;">
     <h2>系统配置</h2>
+    <button onclick="goBack()" style="float:right;">返回</button>
     <label>AI API地址
         <input type="text" id="ai_api_url" />
     </label>
@@ -48,6 +50,7 @@
         <input type="checkbox" id="telegram_enabled" /> 启用Telegram推送
     </label>
     <button onclick="saveConfig()">保存配置</button>
+    <button onclick="testAI()">测试AI</button>
     <button onclick="testTelegram()">测试Telegram</button>
     <p id="config-msg"></p>
 </div>
@@ -114,10 +117,22 @@ async function saveConfig() {
     }
     document.getElementById('config-msg').textContent = '保存成功';
 }
+async function testAI() {
+    const res = await fetch('/api/admin/test-ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: '连接测试' })
+    });
+    const data = await res.json();
+    document.getElementById('config-msg').textContent = data.message || data.result || '';
+}
 async function testTelegram() {
     const res = await fetch('/api/admin/test-telegram', { method: 'POST' });
     const data = await res.json();
     document.getElementById('config-msg').textContent = data.message;
+}
+function goBack(){
+    window.location.href = '/';
 }
 checkAuth();
 </script>

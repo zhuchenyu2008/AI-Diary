@@ -21,15 +21,19 @@ def require_auth(f):
 def test_ai():
     """测试AI连接"""
     try:
-        data = request.json
+        data = request.json or {}
         test_text = data.get('text', '测试文本')
-        
-        # 重新加载AI配置
-        ai_service._load_config()
-        
-        # 测试AI分析
+
+        # 先测试连通性
+        success, message = ai_service.test_connection()
+        if not success:
+            return jsonify({'success': False, 'message': message}), 500
+
         result = ai_service.analyze_entry(test_text)
-        
+
+        if result.startswith('AI分析失败') or result == 'AI服务未配置':
+            return jsonify({'success': False, 'message': result}), 500
+
         return jsonify({
             'success': True,
             'message': 'AI测试成功',
@@ -46,28 +50,18 @@ def test_telegram():
     try:
         # 重新加载Telegram配置
         telegram_service._load_config()
-        
+
         # 测试连接
         success, message = telegram_service.test_connection()
-        
-        if success:
-            # 发送测试消息
-            test_success = telegram_service.send_message("🧪 这是一条测试消息，来自杯子日记")
-            if test_success:
-                return jsonify({
-                    'success': True,
-                    'message': '测试消息发送成功'
-                })
-            else:
-                return jsonify({
-                    'success': False,
-                    'message': '连接成功但发送消息失败'
-                }), 500
+
+        if not success:
+            return jsonify({'success': False, 'message': message}), 500
+
+        test_success = telegram_service.send_message("🧪 这是一条测试消息，来自杯子日记")
+        if test_success:
+            return jsonify({'success': True, 'message': '测试消息发送成功'})
         else:
-            return jsonify({
-                'success': False,
-                'message': message
-            }), 500
+            return jsonify({'success': False, 'message': '连接成功但发送消息失败'}), 500
             
     except Exception as e:
         return jsonify({'success': False, 'message': f'Telegram测试失败: {str(e)}'}), 500
