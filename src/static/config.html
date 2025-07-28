@@ -132,7 +132,11 @@ async function testTelegram() {
     document.getElementById('config-msg').textContent = data.message;
 }
 function goBack(){
-    window.location.href = '/';
+    if (window.parent && window.parent.closeSettings) {
+        window.parent.closeSettings();
+    } else {
+        window.location.href = '/';
+    }
 }
 checkAuth();
 </script>
