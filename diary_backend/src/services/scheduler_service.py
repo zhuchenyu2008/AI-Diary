@@ -9,12 +9,14 @@ class SchedulerService:
     def __init__(self):
         self.running = False
         self.thread = None
+        self.app = None
     
-    def start(self):
+    def start(self, app):
         """启动定时任务"""
         if self.running:
             return
-        
+
+        self.app = app
         self.running = True
         self.thread = threading.Thread(target=self._run_scheduler, daemon=True)
         self.thread.start()
@@ -30,27 +32,34 @@ class SchedulerService:
     def _run_scheduler(self):
         """运行定时任务循环"""
         last_check_date = None
-        
-        while self.running:
-            try:
-                current_time = datetime.now()
-                current_date = current_time.date()
-                
-                # 检查是否到了新的一天（凌晨0点后）
-                if (last_check_date is None or 
-                    (current_date > last_check_date and current_time.hour == 0 and current_time.minute < 5)):
-                    
-                    # 生成昨天的日记汇总
-                    yesterday = current_date - timedelta(days=1)
-                    self._generate_daily_summary(yesterday)
-                    last_check_date = current_date
-                
-                # 每分钟检查一次
-                time.sleep(60)
-                
-            except Exception as e:
-                print(f"定时任务执行异常: {e}")
-                time.sleep(60)
+
+        with self.app.app_context():
+            while self.running:
+                try:
+                    current_time = datetime.now()
+                    current_date = current_time.date()
+
+                    # 检查是否到了新的一天（凌晨0点后）
+                    if (
+                        last_check_date is None
+                        or (
+                            current_date > last_check_date
+                            and current_time.hour == 0
+                            and current_time.minute < 5
+                        )
+                    ):
+
+                        # 生成昨天的日记汇总
+                        yesterday = current_date - timedelta(days=1)
+                        self._generate_daily_summary(yesterday)
+                        last_check_date = current_date
+
+                    # 每分钟检查一次
+                    time.sleep(60)
+
+                except Exception as e:
+                    print(f"定时任务执行异常: {e}")
+                    time.sleep(60)
     
     def _generate_daily_summary(self, target_date):
         """生成指定日期的日记汇总"""
@@ -101,7 +110,8 @@ class SchedulerService:
     def generate_summary_manually(self, target_date):
         """手动生成指定日期的汇总"""
         try:
-            self._generate_daily_summary(target_date)
+            with self.app.app_context():
+                self._generate_daily_summary(target_date)
             return True, "汇总生成成功"
         except Exception as e:
             return False, f"汇总生成失败: {str(e)}"

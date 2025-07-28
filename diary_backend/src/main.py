@@ -109,7 +109,7 @@ if __name__ == '__main__':
     
     # 启动定时任务服务
     from src.services.scheduler_service import scheduler_service
-    scheduler_service.start()
+    scheduler_service.start(app)
     
     try:
         app.run(host='0.0.0.0', port=5000, debug=True)
