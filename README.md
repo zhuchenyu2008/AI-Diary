@@ -65,8 +65,6 @@ cd diary-app
 
 #### 2. 后端设置
 ```bash
-cd diary_backend
-
 # 创建虚拟环境
 python -m venv venv
 
@@ -84,7 +82,7 @@ python src/main.py
 ```
 
 
-- 在浏览器访问 http://localhost:5000（静态文件位于 diary_backend/src/static/，无需单独构建前端）
+- 在浏览器访问 http://localhost:5000（静态文件位于 src/static/，无需单独构建前端）
 ### 初始配置
 
 #### 1. 登录密码
@@ -107,16 +105,14 @@ python src/main.py
 
 ```
 diary-app/
-├── diary_backend/          # 后端代码
-│   ├── src/
-│   │   ├── main.py        # 应用入口
-│   │   ├── models/        # 数据模型
-│   │   ├── routes/        # API路由
-│   │   ├── services/      # 业务服务
-│   │   └── static/        # 静态文件
-│   ├── venv/              # Python虚拟环境
-│   └── requirements.txt   # Python依赖
-├── API_Documentation.md   # API文档
+├── src/                  # 应用源码
+│   ├── main.py           # 应用入口
+│   ├── models/           # 数据模型
+│   ├── routes/           # API路由
+│   ├── services/         # 业务服务
+│   └── static/           # 静态文件
+├── requirements.txt      # Python依赖
+├── API_Documentation.md  # API文档
 └── README.md             # 项目说明
 ```
 
@@ -179,7 +175,7 @@ diary-app/
 FROM python:3.9-slim
 
 WORKDIR /app
-COPY diary_backend/ ./
+COPY ./ ./
 RUN pip install -r requirements.txt
 
 EXPOSE 5000
@@ -187,7 +183,7 @@ CMD ["python", "src/main.py"]
 ```
 
 ### 数据库备份
-SQLite数据库文件位于 `diary_backend/src/database/app.db`，建议定期备份。
+SQLite数据库文件位于 `src/database/app.db`，建议定期备份。
 
 ## 使用指南
 
@@ -236,7 +232,7 @@ A: 请确保图片大小不超过16MB，格式为常见的图片格式。
 A: 在登录后，可以通过API接口或直接修改数据库来更改密码。
 
 ### Q: 数据如何备份？
-A: 备份 `diary_backend/src/database/app.db` 文件即可。
+A: 备份 `src/database/app.db` 文件即可。
 
 ## 开发指南
 
