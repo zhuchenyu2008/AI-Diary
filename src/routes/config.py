@@ -46,38 +46,39 @@ def get_config(key):
 
 @config_bp.route('/configs', methods=['POST'])
 @require_auth
-def create_or_update_config():
-    """创建或更新配置"""
+def create_or_update_configs():
+    """创建或更新多个配置"""
     try:
-        data = request.json
-        key = data.get('key')
-        value = data.get('value')
-        description = data.get('description', '')
-        
-        if not key:
-            return jsonify({'success': False, 'message': '配置键不能为空'}), 400
-        
-        # 查找现有配置
-        config = Config.query.filter_by(key=key).first()
-        
-        if config:
-            # 更新现有配置
-            config.value = value
-            config.description = description
-        else:
-            # 创建新配置
-            config = Config(key=key, value=value, description=description)
-            db.session.add(config)
+        configs_data = request.json
+        if not isinstance(configs_data, list):
+            return jsonify({'success': False, 'message': '无效的数据格式，需要一个配置列表'}), 400
+
+        updated_configs = []
+        for data in configs_data:
+            key = data.get('key')
+            value = data.get('value')
+
+            if not key:
+                continue
+
+            config = Config.query.filter_by(key=key).first()
+            if config:
+                config.value = value
+            else:
+                config = Config(key=key, value=value)
+                db.session.add(config)
+            updated_configs.append(config)
         
         db.session.commit()
         
         return jsonify({
             'success': True,
-            'message': '配置保存成功',
-            'config': config.to_dict()
+            'message': '配置已成功保存',
+            'configs': [c.to_dict() for c in updated_configs]
         })
         
     except Exception as e:
+        db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @config_bp.route('/configs/<string:key>', methods=['DELETE'])
