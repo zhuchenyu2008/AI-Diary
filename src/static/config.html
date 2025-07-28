@@ -4,75 +4,110 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>配置设置</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    <link rel="stylesheet" href="/assets/index-oWMHbS2h.css">
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { padding: 20px; animation: fadeIn .3s ease; }
-        main { max-width: 800px; margin: auto; }
-        .grid {
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
-        .card { padding: 1.5rem; }
-        .card-header { margin-bottom: 1rem; }
-        .card-footer { margin-top: 1.5rem; }
-        #config-msg { min-height: 24px; }
-        @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(10px); }
+        }
+        .toast {
+            animation: fadeIn 0.3s, fadeOut 0.3s 2.7s;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
     </style>
 </head>
-<body>
-<main>
-    <div id="login-section" style="display:none;">
-        <article>
-            <h2 class="card-header">登录</h2>
-            <label for="password">密码</label>
-            <input type="password" id="password" required>
-            <button onclick="login()">登录</button>
-            <p id="login-msg" style="color:red;"></p>
-        </article>
+<body class="bg-gray-50 text-gray-800">
+<div class="container mx-auto p-4 sm:p-6 lg:p-8 max-w-4xl">
+    <div id="login-section" class="hidden">
+        <div class="bg-white p-8 rounded-xl shadow-md max-w-md mx-auto mt-16 animate-fade-in">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">登录</h2>
+            <div class="space-y-4">
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700">密码</label>
+                    <input type="password" id="password" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                <button onclick="login()" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition">
+                    登录
+                </button>
+                <p id="login-msg" class="text-red-500 text-sm text-center min-h-[20px]"></p>
+            </div>
+        </div>
     </div>
 
-    <div id="config-section" style="display:none;">
-        <header>
-             <button onclick="goBack()" style="float:right;">返回</button>
-            <h2>系统配置</h2>
+    <div id="config-section" class="hidden animate-fade-in">
+        <header class="flex items-center justify-between mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">系统配置</h1>
+            <button onclick="goBack()" class="text-sm font-medium text-indigo-600 hover:text-indigo-500 transition-colors">
+                返回
+            </button>
         </header>
 
-        <div class="grid">
-            <article class="card">
-                <h3 class="card-header">AI 设置</h3>
-                <label for="ai_api_url">AI API 地址</label>
-                <input type="text" id="ai_api_url">
-                <label for="ai_api_key">AI API 密钥</label>
-                <input type="text" id="ai_api_key">
-                <label for="ai_model">AI 模型</label>
-                <input type="text" id="ai_model">
-                <label for="ai_prompt_template">AI 提示词模板</label>
-                <textarea id="ai_prompt_template" rows="3"></textarea>
-                <label for="ai_summary_prompt">AI 每日总结提示词</label>
-                <textarea id="ai_summary_prompt" rows="3"></textarea>
-            </article>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="bg-white p-6 rounded-xl shadow-md space-y-4">
+                <h3 class="text-xl font-semibold text-gray-900 border-b pb-3">AI 设置</h3>
+                <div>
+                    <label for="ai_api_url" class="block text-sm font-medium text-gray-700">AI API 地址</label>
+                    <input type="text" id="ai_api_url" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="ai_api_key" class="block text-sm font-medium text-gray-700">AI API 密钥</label>
+                    <input type="text" id="ai_api_key" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="ai_model" class="block text-sm font-medium text-gray-700">AI 模型</label>
+                    <input type="text" id="ai_model" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="ai_prompt_template" class="block text-sm font-medium text-gray-700">AI 提示词模板</label>
+                    <textarea id="ai_prompt_template" rows="3" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
+                </div>
+                <div>
+                    <label for="ai_summary_prompt" class="block text-sm font-medium text-gray-700">AI 每日总结提示词</label>
+                    <textarea id="ai_summary_prompt" rows="3" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
+                </div>
+            </div>
 
-            <article class="card">
-                <h3 class="card-header">Telegram 设置</h3>
-                <label for="telegram_bot_token">Telegram Bot Token</label>
-                <input type="text" id="telegram_bot_token">
-                <label for="telegram_chat_id">Telegram Chat ID</label>
-                <input type="text" id="telegram_chat_id">
-                <label for="telegram_enabled">
-                    <input type="checkbox" id="telegram_enabled" role="switch">
-                    启用 Telegram 推送
-                </label>
-            </article>
+            <div class="bg-white p-6 rounded-xl shadow-md space-y-4">
+                <h3 class="text-xl font-semibold text-gray-900 border-b pb-3">Telegram 设置</h3>
+                <div>
+                    <label for="telegram_bot_token" class="block text-sm font-medium text-gray-700">Telegram Bot Token</label>
+                    <input type="text" id="telegram_bot_token" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="telegram_chat_id" class="block text-sm font-medium text-gray-700">Telegram Chat ID</label>
+                    <input type="text" id="telegram_chat_id" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                <div class="flex items-center pt-2">
+                    <input type="checkbox" id="telegram_enabled" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                    <label for="telegram_enabled" class="ml-2 block text-sm text-gray-900">启用 Telegram 推送</label>
+                </div>
+            </div>
         </div>
 
-        <footer>
-            <button onclick="saveConfig()">保存配置</button>
-            <button class="secondary" onclick="testAI()">测试 AI</button>
-            <button class="secondary" onclick="testTelegram()">测试 Telegram</button>
-            <p id="config-msg"></p>
+        <footer class="mt-8 flex items-center justify-end space-x-3">
+            <button onclick="testAI()" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition">测试 AI</button>
+            <button onclick="testTelegram()" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition">测试 Telegram</button>
+            <button onclick="saveConfig()" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition">保存配置</button>
         </footer>
     </div>
-</main>
+    <div id="toast-container" class="fixed bottom-5 right-5 space-y-2"></div>
+</div>
 <script>
 async function checkAuth() {
     const res = await fetch('/api/auth/check');
@@ -85,10 +120,23 @@ async function checkAuth() {
         document.getElementById('login-section').style.display = 'block';
     }
 }
+function showToast(message, isSuccess = true) {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast p-4 rounded-lg shadow-lg text-white ${isSuccess ? 'bg-green-500' : 'bg-red-500'}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+
 async function login() {
     const msgEl = document.getElementById('login-msg');
     const password = document.getElementById('password').value;
     msgEl.textContent = '';
+    const button = event.target;
+    button.disabled = true;
 
     try {
         const res = await fetch('/api/auth/login', {
@@ -98,21 +146,23 @@ async function login() {
         });
         const data = await res.json();
         if (res.ok && data.success) {
-            checkAuth();
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('config-section').classList.remove('hidden');
+            loadConfig();
         } else {
             msgEl.textContent = data.message || '登录失败';
         }
     } catch (error) {
         msgEl.textContent = `发生错误: ${error.message}`;
+    } finally {
+        button.disabled = false;
     }
 }
 
 async function loadConfig() {
     try {
         const res = await fetch('/api/configs');
-        if (!res.ok) {
-            throw new Error(`无法加载配置: ${res.statusText}`);
-        }
+        if (!res.ok) throw new Error(`无法加载配置: ${res.statusText}`);
         const data = await res.json();
         if (data.success) {
             const map = {};
@@ -129,17 +179,20 @@ async function loadConfig() {
             throw new Error(data.message || '加载配置失败');
         }
     } catch (error) {
-        const msgEl = document.getElementById('config-msg');
-        msgEl.textContent = error.message;
-        msgEl.style.color = 'red';
+        showToast(error.message, false);
     }
 }
+
+const loadingIcon = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+  </svg>`;
+
 async function saveConfig() {
-    const msgEl = document.getElementById('config-msg');
     const button = event.target;
+    const originalContent = button.innerHTML;
     button.disabled = true;
-    msgEl.textContent = '正在保存...';
-    msgEl.style.color = 'inherit';
+    button.innerHTML = `${loadingIcon} 正在保存...`;
 
     try {
         const configs = [
@@ -152,36 +205,31 @@ async function saveConfig() {
             { key: 'telegram_chat_id', value: document.getElementById('telegram_chat_id').value },
             { key: 'telegram_enabled', value: document.getElementById('telegram_enabled').checked ? 'true' : 'false' }
         ];
-
         const res = await fetch('/api/configs', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(configs)
         });
-
         const data = await res.json();
-
         if (data.success) {
-            msgEl.textContent = '配置已成功保存！';
-            msgEl.style.color = 'green';
+            showToast('配置已成功保存！');
         } else {
-            msgEl.textContent = `保存失败: ${data.message}`;
-            msgEl.style.color = 'red';
+            showToast(`保存失败: ${data.message}`, false);
         }
     } catch (error) {
-        msgEl.textContent = `发生错误: ${error.message}`;
-        msgEl.style.color = 'red';
+        showToast(`发生错误: ${error.message}`, false);
     } finally {
         button.disabled = false;
-        setTimeout(() => { msgEl.textContent = ''; }, 3000);
+        button.innerHTML = originalContent;
     }
 }
+
 async function testAI() {
-    const msgEl = document.getElementById('config-msg');
     const button = event.target;
+    const originalContent = button.innerHTML;
     button.disabled = true;
-    msgEl.textContent = '正在测试 AI 连接...';
-    msgEl.style.color = 'inherit';
+    button.innerHTML = `${loadingIcon.replace('text-white', 'text-gray-700')} 正在测试...`;
+    showToast('正在测试 AI 连接...');
 
     try {
         const res = await fetch('/api/admin/test-ai', {
@@ -191,44 +239,38 @@ async function testAI() {
         });
         const data = await res.json();
         if (res.ok && data.success) {
-            msgEl.textContent = `AI 测试成功: ${data.message || data.result}`;
-            msgEl.style.color = 'green';
+            showToast(`AI 测试成功: ${data.message || data.result}`);
         } else {
-            msgEl.textContent = `AI 测试失败: ${data.message || '未知错误'}`;
-            msgEl.style.color = 'red';
+            showToast(`AI 测试失败: ${data.message || '未知错误'}`, false);
         }
     } catch (error) {
-        msgEl.textContent = `发生错误: ${error.message}`;
-        msgEl.style.color = 'red';
+        showToast(`发生错误: ${error.message}`, false);
     } finally {
         button.disabled = false;
-        setTimeout(() => { msgEl.textContent = ''; }, 5000);
+        button.innerHTML = originalContent;
     }
 }
 
 async function testTelegram() {
-    const msgEl = document.getElementById('config-msg');
     const button = event.target;
+    const originalContent = button.innerHTML;
     button.disabled = true;
-    msgEl.textContent = '正在测试 Telegram 连接...';
-    msgEl.style.color = 'inherit';
+    button.innerHTML = `${loadingIcon.replace('text-white', 'text-gray-700')} 正在测试...`;
+    showToast('正在测试 Telegram 连接...');
 
     try {
         const res = await fetch('/api/admin/test-telegram', { method: 'POST' });
         const data = await res.json();
         if (res.ok && data.success) {
-            msgEl.textContent = `Telegram 测试成功: ${data.message}`;
-            msgEl.style.color = 'green';
+            showToast(`Telegram 测试成功: ${data.message}`);
         } else {
-            msgEl.textContent = `Telegram 测试失败: ${data.message || '未知错误'}`;
-            msgEl.style.color = 'red';
+            showToast(`Telegram 测试失败: ${data.message || '未知错误'}`, false);
         }
     } catch (error) {
-        msgEl.textContent = `发生错误: ${error.message}`;
-        msgEl.style.color = 'red';
+        showToast(`发生错误: ${error.message}`, false);
     } finally {
         button.disabled = false;
-        setTimeout(() => { msgEl.textContent = ''; }, 5000);
+        button.innerHTML = originalContent;
     }
 }
 function goBack(){
