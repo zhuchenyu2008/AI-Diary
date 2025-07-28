@@ -24,23 +24,25 @@
       function closeSettings(){document.getElementById('config-overlay').style.display='none';}
       function addSettingsButton(){
         const logoutBtn=[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='登出');
-        if(logoutBtn && !document.getElementById('settings-button')){
-          const btn=logoutBtn.cloneNode(true);
-          btn.id='settings-button';
-          btn.textContent='设置';
-          btn.addEventListener('click',openSettings);
-          logoutBtn.after(btn);
+        if(!logoutBtn) return;
+        let wrapper=document.getElementById('button-container');
+        if(!wrapper){
+          wrapper=document.createElement('div');
+          wrapper.id='button-container';
+          logoutBtn.parentNode.insertBefore(wrapper,logoutBtn);
         }
-        if(logoutBtn){
-          let wrapper=document.getElementById('button-container');
-          if(!wrapper){
-            wrapper=document.createElement('div');
-            wrapper.id='button-container';
-            logoutBtn.parentNode.insertBefore(wrapper,logoutBtn);
-          }
+        if(logoutBtn.parentNode!==wrapper){
           wrapper.appendChild(logoutBtn);
-          const settingBtn=document.getElementById('settings-button');
-          if(settingBtn) wrapper.appendChild(settingBtn);
+        }
+        let settingBtn=document.getElementById('settings-button');
+        if(!settingBtn){
+          settingBtn=logoutBtn.cloneNode(true);
+          settingBtn.id='settings-button';
+          settingBtn.textContent='设置';
+          settingBtn.addEventListener('click',openSettings);
+        }
+        if(settingBtn.parentNode!==wrapper){
+          wrapper.appendChild(settingBtn);
         }
       }
       const ob=new MutationObserver(addSettingsButton);
