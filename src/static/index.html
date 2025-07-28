@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI日记</title>
     <script type="module" crossorigin src="/assets/index-DUaNkWBt.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-oWMHbS2h.css">
   <style>
     #config-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.95);z-index:9999;display:none;animation:fadeIn 0.3s;}
@@ -48,6 +49,15 @@
       const ob=new MutationObserver(addSettingsButton);
       ob.observe(document.getElementById('root'),{childList:true,subtree:true});
       addSettingsButton();
+      function renderMarkdown(){
+        document.querySelectorAll('.markdown').forEach(el=>{
+          el.innerHTML=marked.parse(el.textContent);
+          el.classList.remove('markdown');
+        });
+      }
+      const mdObserver=new MutationObserver(renderMarkdown);
+      mdObserver.observe(document.getElementById('root'),{childList:true,subtree:true});
+      renderMarkdown();
     </script>
   </body>
 </html>

@@ -1,6 +1,7 @@
 import threading
 import time
 from datetime import datetime, date, timedelta
+from zoneinfo import ZoneInfo
 from src.models.diary import DiaryEntry, DailySummary, db
 from src.services.ai_service import ai_service
 from src.services.telegram_service import telegram_service
@@ -36,7 +37,7 @@ class SchedulerService:
         with self.app.app_context():
             while self.running:
                 try:
-                    current_time = datetime.now()
+                    current_time = datetime.now(ZoneInfo("Asia/Shanghai"))
                     current_date = current_time.date()
 
                     # 检查是否到了新的一天（凌晨0点后）

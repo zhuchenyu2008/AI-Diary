@@ -112,7 +112,7 @@
 async function checkAuth() {
     const loginSection = document.getElementById('login-section');
     const configSection = document.getElementById('config-section');
-    const res = await fetch('/api/auth/check');
+    const res = await fetch('/api/auth/check', { credentials: 'include' });
     const data = await res.json();
     if (data.authenticated) {
         loginSection.classList.add('hidden');
@@ -145,6 +145,7 @@ async function login() {
         const res = await fetch('/api/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify({ password })
         });
         const data = await res.json();
@@ -164,7 +165,7 @@ async function login() {
 
 async function loadConfig() {
     try {
-        const res = await fetch('/api/configs');
+        const res = await fetch('/api/configs', { credentials: 'include' });
         if (!res.ok) throw new Error(`无法加载配置: ${res.statusText}`);
         const data = await res.json();
         if (data.success) {
@@ -211,6 +212,7 @@ async function saveConfig() {
         const res = await fetch('/api/configs', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify(configs)
         });
         const data = await res.json();
@@ -238,6 +240,7 @@ async function testAI() {
         const res = await fetch('/api/admin/test-ai', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify({ text: '连接测试' })
         });
         const data = await res.json();
@@ -262,7 +265,7 @@ async function testTelegram() {
     showToast('正在测试 Telegram 连接...');
 
     try {
-        const res = await fetch('/api/admin/test-telegram', { method: 'POST' });
+        const res = await fetch('/api/admin/test-telegram', { method: 'POST', credentials: 'include' });
         const data = await res.json();
         if (res.ok && data.success) {
             showToast(`Telegram 测试成功: ${data.message}`);

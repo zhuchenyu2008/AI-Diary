@@ -1,5 +1,11 @@
 from src.models.user import db
 from datetime import datetime
+from zoneinfo import ZoneInfo
+
+
+def beijing_now():
+    """Return current time in Asia/Shanghai timezone"""
+    return datetime.now(ZoneInfo("Asia/Shanghai"))
 import json
 
 class DiaryEntry(db.Model):
@@ -7,11 +13,11 @@ class DiaryEntry(db.Model):
     __tablename__ = 'diary_entries'
     
     id = db.Column(db.Integer, primary_key=True)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    timestamp = db.Column(db.DateTime, default=beijing_now, nullable=False)
     text_content = db.Column(db.Text)  # 用户输入的文字内容
     image_path = db.Column(db.String(255))  # 图片存储路径
     ai_analysis = db.Column(db.Text)  # AI分析结果
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=beijing_now)
     
     def __repr__(self):
         return f'<DiaryEntry {self.id} at {self.timestamp}>'
@@ -34,7 +40,7 @@ class DailySummary(db.Model):
     date = db.Column(db.Date, unique=True, nullable=False)  # 日期（年-月-日）
     summary_content = db.Column(db.Text, nullable=False)  # AI汇总的日记内容
     entry_count = db.Column(db.Integer, default=0)  # 当日条目数量
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=beijing_now)
     
     def __repr__(self):
         return f'<DailySummary {self.date}>'
@@ -56,8 +62,8 @@ class Config(db.Model):
     key = db.Column(db.String(100), unique=True, nullable=False)
     value = db.Column(db.Text)
     description = db.Column(db.String(255))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=beijing_now)
+    updated_at = db.Column(db.DateTime, default=beijing_now, onupdate=beijing_now)
     
     def __repr__(self):
         return f'<Config {self.key}>'
@@ -78,8 +84,8 @@ class Auth(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     password_hash = db.Column(db.String(255), nullable=False)  # 密码哈希
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=beijing_now)
+    updated_at = db.Column(db.DateTime, default=beijing_now, onupdate=beijing_now)
     
     def __repr__(self):
         return f'<Auth {self.id}>'

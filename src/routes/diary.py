@@ -1,8 +1,9 @@
 from flask import Blueprint, jsonify, request, session
 from werkzeug.utils import secure_filename
-from src.models.diary import DiaryEntry, DailySummary, db
+from src.models.diary import DiaryEntry, DailySummary, db, beijing_now
 from src.services.ai_service import ai_service
 from datetime import datetime, date, timedelta
+from zoneinfo import ZoneInfo
 import os
 import uuid
 import threading
@@ -70,7 +71,7 @@ def create_entry():
         entry = DiaryEntry(
             text_content=text_content,
             image_path=image_path,
-            timestamp=datetime.utcnow()
+            timestamp=beijing_now()
         )
         
         db.session.add(entry)
@@ -244,7 +245,7 @@ def get_summary(date_str):
 def get_today_countdown():
     """获取距离今日结束的倒计时"""
     try:
-        now = datetime.now()
+        now = datetime.now(ZoneInfo("Asia/Shanghai"))
         # 计算到明天0点的时间
         tomorrow = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
         remaining = tomorrow - now
