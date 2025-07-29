@@ -5,6 +5,7 @@
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI日记</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script type="module" crossorigin src="/assets/index-DUaNkWBt.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-oWMHbS2h.css">
   <style>
@@ -48,6 +49,20 @@
       const ob=new MutationObserver(addSettingsButton);
       ob.observe(document.getElementById('root'),{childList:true,subtree:true});
       addSettingsButton();
+
+      function renderMarkdown() {
+        const analysisElements = document.querySelectorAll('.ai-analysis-content');
+        analysisElements.forEach(el => {
+          if (!el.dataset.rendered) {
+            el.innerHTML = marked.parse(el.textContent || '');
+            el.dataset.rendered = 'true';
+          }
+        });
+      }
+
+      const markdownObserver = new MutationObserver(renderMarkdown);
+      markdownObserver.observe(document.getElementById('root'), { childList: true, subtree: true });
+      renderMarkdown();
     </script>
   </body>
 </html>
