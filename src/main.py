@@ -4,7 +4,6 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from flask import Flask, send_from_directory
-from sqlalchemy import inspect, text
 from flask_cors import CORS
 from src.models.user import db
 from src.models.diary import DiaryEntry, DailySummary, Config, Auth
@@ -86,14 +85,6 @@ def init_default_configs():
     
     db.session.commit()
 
-def migrate_schema():
-    """Add new columns if database is outdated"""
-    inspector = inspect(db.engine)
-    columns = [c['name'] for c in inspector.get_columns('auth')]
-    if 'admin_password_hash' not in columns:
-        db.session.execute(text('ALTER TABLE auth ADD COLUMN admin_password_hash VARCHAR(255)'))
-        db.session.commit()
-
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
@@ -114,7 +105,6 @@ def serve(path):
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-        migrate_schema()
         init_default_configs()
     
     # 启动定时任务服务
