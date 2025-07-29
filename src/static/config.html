@@ -165,6 +165,10 @@ async function login() {
 async function loadConfig() {
     try {
         const res = await fetch('/api/configs');
+        if (res.status === 401) {
+            checkAuth();
+            return;
+        }
         if (!res.ok) throw new Error(`无法加载配置: ${res.statusText}`);
         const data = await res.json();
         if (data.success) {
@@ -213,6 +217,10 @@ async function saveConfig() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(configs)
         });
+        if (res.status === 401) {
+            checkAuth();
+            return;
+        }
         const data = await res.json();
         if (data.success) {
             showToast('配置已成功保存！');
