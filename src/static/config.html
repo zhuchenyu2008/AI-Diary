@@ -112,7 +112,7 @@
 async function checkAuth() {
     const loginSection = document.getElementById('login-section');
     const configSection = document.getElementById('config-section');
-    const res = await fetch('/api/auth/check');
+    const res = await fetch('/api/auth/check?type=admin');
     const data = await res.json();
     if (data.authenticated) {
         loginSection.classList.add('hidden');
@@ -142,7 +142,7 @@ async function login() {
     button.disabled = true;
 
     try {
-        const res = await fetch('/api/auth/login', {
+        const res = await fetch('/api/auth/admin-login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ password })
