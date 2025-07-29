@@ -4,6 +4,7 @@ from src.services.ai_service import ai_service
 from src.services.telegram_service import telegram_service
 from src.services.scheduler_service import scheduler_service
 from datetime import datetime, date
+from src.services.time_service import time_service
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -138,7 +139,7 @@ def system_status():
                 'ai_configured': ai_configured,
                 'telegram_configured': telegram_configured,
                 'scheduler_running': scheduler_running,
-                'timestamp': datetime.now().isoformat()
+                'timestamp': time_service.get_beijing_time().isoformat()
             }
         })
         
