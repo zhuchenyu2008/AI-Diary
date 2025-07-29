@@ -20,7 +20,7 @@ def allowed_file(filename):
 def require_auth(f):
     """认证装饰器"""
     def decorated_function(*args, **kwargs):
-        if not session.get('entry_authenticated', False):
+        if not session.get('authenticated', False):
             return jsonify({'success': False, 'message': '未认证'}), 401
         return f(*args, **kwargs)
     decorated_function.__name__ = f.__name__

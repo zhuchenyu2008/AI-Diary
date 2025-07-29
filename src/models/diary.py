@@ -76,12 +76,9 @@ class Config(db.Model):
 class Auth(db.Model):
     """认证模型"""
     __tablename__ = 'auth'
-
+    
     id = db.Column(db.Integer, primary_key=True)
-    # 登录进入应用的密码哈希
-    password_hash = db.Column(db.String(255), nullable=False)
-    # 管理员密码哈希，可为空(首次登录后设置)
-    admin_password_hash = db.Column(db.String(255))
+    password_hash = db.Column(db.String(255), nullable=False)  # 密码哈希
     created_at = db.Column(db.DateTime, default=lambda: time_service.get_beijing_time())
     updated_at = db.Column(db.DateTime, default=lambda: time_service.get_beijing_time(), onupdate=lambda: time_service.get_beijing_time())
     
