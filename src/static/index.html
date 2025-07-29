@@ -51,8 +51,10 @@
       addSettingsButton();
 
       function renderMarkdown() {
-        const analysisElements = document.querySelectorAll('.ai-analysis-content');
-        analysisElements.forEach(el => {
+        const elements = document.querySelectorAll(
+          '.ai-analysis-content, [data-markdown]'
+        );
+        elements.forEach(el => {
           if (!el.dataset.rendered) {
             el.innerHTML = marked.parse(el.textContent || '');
             el.dataset.rendered = 'true';
