@@ -1,7 +1,7 @@
 import sys
 from getpass import getpass
 
-from src.main import app
+from src.main import app, migrate_schema
 from src.models.diary import db, Auth
 from src.routes.auth import simple_hash
 
@@ -20,6 +20,7 @@ if entry is None and admin is None:
     sys.exit(1)
 
 with app.app_context():
+    migrate_schema()
     auth = Auth.query.first()
     if not auth:
         auth = Auth()
