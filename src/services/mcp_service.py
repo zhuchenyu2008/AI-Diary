@@ -3,6 +3,7 @@ import subprocess
 import asyncio
 import aiohttp
 import time
+import os
 from datetime import datetime
 from typing import Dict, List, Any, Optional, Tuple
 from src.models.mcp import MCPServer, MCPTool, MCPResource, MCPPrompt, MCPExecution
@@ -44,17 +45,52 @@ class MCPService:
             # 构建命令和参数
             cmd = [server.command]
             if server.args:
-                cmd.extend(server.args)
+                if isinstance(server.args, list):
+                    cmd.extend(server.args)
+                elif isinstance(server.args, str):
+                    # 如果是字符串，尝试解析为JSON数组
+                    try:
+                        args_list = json.loads(server.args)
+                        if isinstance(args_list, list):
+                            cmd.extend(args_list)
+                        else:
+                            cmd.append(server.args)
+                    except json.JSONDecodeError:
+                        # 如果不是JSON，按空格分割
+                        cmd.extend(server.args.split())
+            
+            # 设置环境变量
+            env = dict(os.environ)
+            if server.env_vars:
+                if isinstance(server.env_vars, dict):
+                    env.update(server.env_vars)
+                elif isinstance(server.env_vars, str):
+                    try:
+                        env_dict = json.loads(server.env_vars)
+                        if isinstance(env_dict, dict):
+                            env.update(env_dict)
+                    except json.JSONDecodeError:
+                        pass
             
             # 启动进程
             process = await asyncio.create_subprocess_exec(
                 *cmd,
                 stdin=asyncio.subprocess.PIPE,
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                stderr=asyncio.subprocess.PIPE,
+                env=env
             )
             
             self.server_processes[server.id] = process
+            
+            # 等待进程启动
+            await asyncio.sleep(1)
+            
+            # 检查进程是否还在运行
+            if process.returncode is not None:
+                stderr_output = await process.stderr.read()
+                error_msg = stderr_output.decode() if stderr_output else "进程启动后立即退出"
+                return False, f"服务器启动失败: {error_msg}"
             
             # 初始化连接
             success = await self._initialize_connection(server.id, process)

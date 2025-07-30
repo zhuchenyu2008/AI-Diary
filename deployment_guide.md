@@ -1,51 +1,37 @@
-# AI日记应用部署指南
+# AI日记 v2.0 部署指南
 
-本文档详细说明了如何在不同环境中部署AI日记应用。
+本指南详细说明了如何在不同环境中部署AI日记应用，包括开发环境、测试环境和生产环境。
 
-## 系统要求
+## 📋 系统要求
 
-### 最低要求
-- **操作系统**: Linux、Windows、macOS
-- **Python版本**: 3.8 或更高版本
-- **内存**: 512MB RAM
-- **存储空间**: 100MB 可用空间
-- **网络**: 互联网连接（用于AI API调用）
+### 基础要求
+- **操作系统**: Linux (推荐 Ubuntu 20.04+), macOS, Windows 10+
+- **Python**: 3.8 或更高版本
+- **内存**: 最少 512MB，推荐 1GB+
+- **存储**: 最少 1GB 可用空间
+- **网络**: 需要访问AI API服务（如OpenAI）
 
-### 推荐配置
-- **操作系统**: Ubuntu 20.04 LTS 或更高版本
-- **Python版本**: 3.9 或更高版本
-- **内存**: 1GB RAM 或更多
-- **存储空间**: 1GB 可用空间
-- **网络**: 稳定的互联网连接
+### 可选依赖（MCP功能）
+- **uv**: Python包管理器，用于MCP服务器管理
+- **Node.js**: 某些MCP服务器可能需要
+- **Docker**: 容器化部署（可选）
 
-## 开发环境部署
+## 🚀 快速部署
 
-### 1. 环境准备
+### 1. 基础部署
 
-#### 安装Python
+#### 步骤1：获取代码
 ```bash
-# Ubuntu/Debian
-sudo apt update
-sudo apt install python3 python3-pip python3-venv
-
-# CentOS/RHEL
-sudo yum install python3 python3-pip
-
-# macOS (使用Homebrew)
-brew install python3
-
-# Windows
-# 从 https://python.org 下载并安装Python
-```
-
-#### 克隆项目
-```bash
+# 克隆项目
 git clone https://github.com/zhuchenyu2008/AI-Diary.git
+cd AI-Diary
+
+# 或者解压提供的项目包
+tar -xzf AI-Diary-v2.0-upgraded.tar.gz
 cd AI-Diary
 ```
 
-### 2. 虚拟环境设置
-
+#### 步骤2：创建虚拟环境
 ```bash
 # 创建虚拟环境
 python3 -m venv venv
@@ -53,51 +39,126 @@ python3 -m venv venv
 # 激活虚拟环境
 # Linux/macOS
 source venv/bin/activate
-
 # Windows
 venv\Scripts\activate
 ```
 
-### 3. 安装依赖
-
+#### 步骤3：安装Python依赖
 ```bash
-# 安装Python依赖
+# 安装基础依赖
 pip install -r requirements.txt
 
-# 如果遇到权限问题
-pip install --user -r requirements.txt
+# 验证安装
+python -c "import flask; print('Flask安装成功')"
 ```
 
-### 4. 数据库初始化
-
+#### 步骤4：初始化数据库
 ```bash
 # 创建数据库目录
 mkdir -p src/database
 
-# 启动应用（首次启动会自动创建数据库）
-python src/main.py
+# 初始化数据库（如果有初始化脚本）
+python src/init_db.py
 ```
 
-### 5. 访问应用
+#### 步骤5：启动应用
+```bash
+# 开发模式启动
+python src/main.py
 
-打开浏览器访问：http://localhost:5000
+# 应用将在 http://localhost:5000 启动
+```
 
-默认登录密码：`1234`
+### 2. MCP功能部署
 
-## 生产环境部署
+如果需要使用MCP（Model Context Protocol）功能，需要额外安装相关依赖。
 
-### 方式一：使用Gunicorn部署
+#### 安装uv包管理器
+```bash
+# Linux/macOS
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-#### 1. 安装Gunicorn
+# Windows (PowerShell)
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+# 验证安装
+uv --version
+```
+
+#### 安装MCP服务器包
+```bash
+# 安装常用MCP服务器
+uvx install mcp-server-time
+uvx install mcp-server-weather
+
+# 验证安装
+uvx mcp-server-time --help
+```
+
+#### 配置MCP服务器
+1. 启动应用后访问设置页面
+2. 点击"管理 MCP 服务器"
+3. 添加内置服务器模板或自定义配置
+
+## 🔧 详细配置
+
+### 环境变量配置
+
+创建 `.env` 文件（可选）：
+```bash
+# AI服务配置
+AI_API_BASE=https://api.openai.com/v1
+AI_API_KEY=your-openai-api-key
+AI_MODEL=gpt-3.5-turbo
+
+# 应用配置
+SECRET_KEY=your-secret-key-here
+DEBUG=False
+PORT=5000
+
+# 数据库配置
+DATABASE_URL=sqlite:///src/database/app.db
+
+# MCP配置
+MCP_ENABLED=true
+MCP_TIMEOUT=30
+
+# Telegram配置（可选）
+TELEGRAM_BOT_TOKEN=your-bot-token
+TELEGRAM_CHAT_ID=your-chat-id
+```
+
+### 应用配置
+
+#### 首次启动配置
+1. **设置登录密码**
+   - 默认密码：`1234`
+   - 首次登录后建议修改
+
+2. **配置AI服务**
+   - API地址：`https://api.openai.com/v1`
+   - API密钥：需要有效的OpenAI API密钥
+   - 模型：`gpt-3.5-turbo` 或其他支持的模型
+
+3. **配置Telegram推送（可选）**
+   - 创建Telegram机器人获取Token
+   - 获取Chat ID
+   - 在设置中启用推送功能
+
+## 🏭 生产环境部署
+
+### 方式1：使用Gunicorn + Nginx
+
+#### 安装Gunicorn
 ```bash
 pip install gunicorn
 ```
 
-#### 2. 创建Gunicorn配置文件
+#### 创建Gunicorn配置文件
 ```python
 # gunicorn.conf.py
-bind = "0.0.0.0:5000"
-workers = 2
+bind = "127.0.0.1:5000"
+workers = 4
 worker_class = "sync"
 worker_connections = 1000
 timeout = 30
@@ -107,23 +168,16 @@ max_requests_jitter = 100
 preload_app = True
 ```
 
-#### 3. 启动应用
+#### 启动Gunicorn
 ```bash
+# 启动应用
 gunicorn -c gunicorn.conf.py src.main:app
+
+# 或者直接指定参数
+gunicorn -w 4 -b 127.0.0.1:5000 src.main:app
 ```
 
-### 方式二：使用Nginx + Gunicorn
-
-#### 1. 安装Nginx
-```bash
-# Ubuntu/Debian
-sudo apt install nginx
-
-# CentOS/RHEL
-sudo yum install nginx
-```
-
-#### 2. 配置Nginx
+#### 配置Nginx
 ```nginx
 # /etc/nginx/sites-available/ai-diary
 server {
@@ -146,65 +200,61 @@ server {
 }
 ```
 
-#### 3. 启用站点
+#### 启用Nginx配置
 ```bash
+# 创建软链接
 sudo ln -s /etc/nginx/sites-available/ai-diary /etc/nginx/sites-enabled/
+
+# 测试配置
 sudo nginx -t
-sudo systemctl reload nginx
+
+# 重启Nginx
+sudo systemctl restart nginx
 ```
 
-### 方式三：使用Docker部署
+### 方式2：使用Docker部署
 
-#### 1. 创建Dockerfile
+#### 创建Dockerfile
 ```dockerfile
 FROM python:3.9-slim
 
 # 设置工作目录
 WORKDIR /app
 
+# 安装系统依赖
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# 安装uv（用于MCP功能）
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.cargo/bin:$PATH"
+
 # 复制依赖文件
 COPY requirements.txt .
 
-# 安装依赖
+# 安装Python依赖
 RUN pip install --no-cache-dir -r requirements.txt
 
 # 复制应用代码
 COPY . .
 
-# 创建数据库目录
-RUN mkdir -p src/database
+# 创建数据目录
+RUN mkdir -p src/database data/uploads
 
 # 暴露端口
 EXPOSE 5000
 
 # 设置环境变量
-ENV FLASK_APP=src/main.py
+ENV FLASK_APP=src.main:app
 ENV FLASK_ENV=production
 
-# 启动应用
-CMD ["python", "src/main.py"]
+# 启动命令
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "src.main:app"]
 ```
 
-#### 2. 构建镜像
-```bash
-docker build -t ai-diary .
-```
-
-#### 3. 运行容器
-```bash
-# 基本运行
-docker run -p 5000:5000 ai-diary
-
-# 持久化数据
-docker run -p 5000:5000 -v $(pwd)/data:/app/src/database ai-diary
-
-# 后台运行
-docker run -d -p 5000:5000 --name ai-diary-app ai-diary
-```
-
-#### 4. 使用Docker Compose
+#### 创建docker-compose.yml
 ```yaml
-# docker-compose.yml
 version: '3.8'
 
 services:
@@ -213,38 +263,46 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - ./data:/app/src/database
+      - ./data:/app/data
+      - ./src/database:/app/src/database
     environment:
-      - FLASK_ENV=production
+      - AI_API_KEY=${AI_API_KEY}
+      - SECRET_KEY=${SECRET_KEY}
     restart: unless-stopped
 
   nginx:
     image: nginx:alpine
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl
     depends_on:
       - ai-diary
     restart: unless-stopped
 ```
 
+#### 构建和运行
 ```bash
-# 启动服务
+# 构建镜像
+docker build -t ai-diary:v2.0 .
+
+# 运行容器
+docker run -d \
+  --name ai-diary \
+  -p 5000:5000 \
+  -v $(pwd)/data:/app/data \
+  -e AI_API_KEY=your-api-key \
+  ai-diary:v2.0
+
+# 或使用docker-compose
 docker-compose up -d
-
-# 查看日志
-docker-compose logs -f
-
-# 停止服务
-docker-compose down
 ```
 
-## 进程管理
+### 方式3：使用Systemd服务
 
-### 使用Systemd（推荐）
-
-#### 1. 创建服务文件
+#### 创建服务文件
 ```ini
 # /etc/systemd/system/ai-diary.service
 [Unit]
@@ -252,11 +310,13 @@ Description=AI Diary Application
 After=network.target
 
 [Service]
-Type=simple
+Type=exec
 User=www-data
-WorkingDirectory=/path/to/AI-Diary
-Environment=PATH=/path/to/AI-Diary/venv/bin
-ExecStart=/path/to/AI-Diary/venv/bin/gunicorn -c gunicorn.conf.py src.main:app
+Group=www-data
+WorkingDirectory=/opt/ai-diary
+Environment=PATH=/opt/ai-diary/venv/bin
+ExecStart=/opt/ai-diary/venv/bin/gunicorn -c gunicorn.conf.py src.main:app
+ExecReload=/bin/kill -s HUP $MAINPID
 Restart=always
 RestartSec=10
 
@@ -264,118 +324,89 @@ RestartSec=10
 WantedBy=multi-user.target
 ```
 
-#### 2. 启用服务
+#### 启用和启动服务
 ```bash
+# 重新加载systemd配置
 sudo systemctl daemon-reload
+
+# 启用服务
 sudo systemctl enable ai-diary
+
+# 启动服务
 sudo systemctl start ai-diary
+
+# 查看状态
 sudo systemctl status ai-diary
 ```
 
-### 使用Supervisor
+## 🔒 安全配置
 
-#### 1. 安装Supervisor
+### SSL/TLS配置
+
+#### 使用Let's Encrypt
 ```bash
-sudo apt install supervisor
-```
-
-#### 2. 创建配置文件
-```ini
-# /etc/supervisor/conf.d/ai-diary.conf
-[program:ai-diary]
-command=/path/to/AI-Diary/venv/bin/gunicorn -c gunicorn.conf.py src.main:app
-directory=/path/to/AI-Diary
-user=www-data
-autostart=true
-autorestart=true
-redirect_stderr=true
-stdout_logfile=/var/log/ai-diary.log
-```
-
-#### 3. 启动服务
-```bash
-sudo supervisorctl reread
-sudo supervisorctl update
-sudo supervisorctl start ai-diary
-```
-
-## SSL/HTTPS配置
-
-### 使用Let's Encrypt
-
-#### 1. 安装Certbot
-```bash
+# 安装Certbot
 sudo apt install certbot python3-certbot-nginx
-```
 
-#### 2. 获取SSL证书
-```bash
+# 获取SSL证书
 sudo certbot --nginx -d your-domain.com
-```
 
-#### 3. 自动续期
-```bash
+# 自动续期
 sudo crontab -e
-# 添加以下行
-0 12 * * * /usr/bin/certbot renew --quiet
+# 添加：0 12 * * * /usr/bin/certbot renew --quiet
 ```
 
-## 环境变量配置
+#### Nginx SSL配置
+```nginx
+server {
+    listen 443 ssl http2;
+    server_name your-domain.com;
 
-创建 `.env` 文件：
+    ssl_certificate /etc/letsencrypt/live/your-domain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/your-domain.com/privkey.pem;
+    
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512;
+    ssl_prefer_server_ciphers off;
+    
+    location / {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+server {
+    listen 80;
+    server_name your-domain.com;
+    return 301 https://$server_name$request_uri;
+}
+```
+
+### 防火墙配置
 ```bash
-# .env
-FLASK_ENV=production
-SECRET_KEY=your-secret-key-here
-DATABASE_URL=sqlite:///src/database/app.db
-
-# AI配置
-AI_API_URL=https://api.openai.com/v1
-AI_API_KEY=your-openai-api-key
-AI_MODEL=gpt-3.5-turbo
-
-# Telegram配置
-TELEGRAM_BOT_TOKEN=your-telegram-bot-token
-TELEGRAM_CHAT_ID=your-telegram-chat-id
+# 使用ufw配置防火墙
+sudo ufw allow ssh
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw enable
 ```
 
-## 数据库管理
+### 应用安全
+1. **修改默认密码**：首次登录后立即修改
+2. **API密钥安全**：使用环境变量存储，不要硬编码
+3. **定期备份**：备份数据库和配置文件
+4. **监控日志**：定期检查应用和系统日志
 
-### 备份数据库
-```bash
-# 创建备份
-cp src/database/app.db backups/app_$(date +%Y%m%d_%H%M%S).db
-
-# 自动备份脚本
-#!/bin/bash
-BACKUP_DIR="/path/to/backups"
-DB_FILE="/path/to/AI-Diary/src/database/app.db"
-DATE=$(date +%Y%m%d_%H%M%S)
-
-mkdir -p $BACKUP_DIR
-cp $DB_FILE $BACKUP_DIR/app_$DATE.db
-
-# 保留最近30天的备份
-find $BACKUP_DIR -name "app_*.db" -mtime +30 -delete
-```
-
-### 恢复数据库
-```bash
-# 停止应用
-sudo systemctl stop ai-diary
-
-# 恢复数据库
-cp backups/app_20250730_120000.db src/database/app.db
-
-# 启动应用
-sudo systemctl start ai-diary
-```
-
-## 监控和日志
+## 📊 监控和维护
 
 ### 日志配置
+
+#### 应用日志
 ```python
-# 在main.py中添加日志配置
+# 在main.py中配置日志
 import logging
 from logging.handlers import RotatingFileHandler
 
@@ -389,143 +420,153 @@ if not app.debug:
     app.logger.setLevel(logging.INFO)
 ```
 
-### 性能监控
-```bash
-# 安装htop监控系统资源
-sudo apt install htop
+#### Nginx日志
+```nginx
+# 在nginx配置中
+access_log /var/log/nginx/ai-diary-access.log;
+error_log /var/log/nginx/ai-diary-error.log;
+```
 
-# 监控应用进程
+### 性能监控
+
+#### 使用htop监控系统资源
+```bash
+sudo apt install htop
+htop
+```
+
+#### 监控应用进程
+```bash
+# 查看Gunicorn进程
 ps aux | grep gunicorn
 
-# 查看端口使用情况
+# 查看端口占用
 sudo netstat -tlnp | grep :5000
 ```
 
-## 安全配置
+### 备份策略
 
-### 防火墙设置
+#### 数据库备份
 ```bash
-# Ubuntu UFW
-sudo ufw allow 22/tcp
-sudo ufw allow 80/tcp
-sudo ufw allow 443/tcp
-sudo ufw enable
+#!/bin/bash
+# backup.sh
+DATE=$(date +%Y%m%d_%H%M%S)
+BACKUP_DIR="/opt/backups"
+DB_FILE="/opt/ai-diary/src/database/app.db"
 
-# CentOS firewalld
-sudo firewall-cmd --permanent --add-service=ssh
-sudo firewall-cmd --permanent --add-service=http
-sudo firewall-cmd --permanent --add-service=https
-sudo firewall-cmd --reload
+mkdir -p $BACKUP_DIR
+cp $DB_FILE $BACKUP_DIR/app_$DATE.db
+
+# 保留最近30天的备份
+find $BACKUP_DIR -name "app_*.db" -mtime +30 -delete
 ```
 
-### 应用安全
-1. 修改默认密码
-2. 使用强密码
-3. 定期更新依赖包
-4. 限制文件上传大小
-5. 配置CORS策略
+#### 自动备份
+```bash
+# 添加到crontab
+crontab -e
+# 每天凌晨2点备份
+0 2 * * * /opt/ai-diary/backup.sh
+```
 
-## 故障排除
+## 🔧 故障排除
 
 ### 常见问题
 
-#### 1. 端口被占用
+#### 1. 应用无法启动
 ```bash
-# 查找占用端口的进程
+# 检查Python版本
+python --version
+
+# 检查依赖安装
+pip list | grep flask
+
+# 检查端口占用
 sudo lsof -i :5000
 
-# 杀死进程
-sudo kill -9 <PID>
-```
-
-#### 2. 权限问题
-```bash
-# 修改文件权限
-sudo chown -R www-data:www-data /path/to/AI-Diary
-sudo chmod -R 755 /path/to/AI-Diary
-```
-
-#### 3. 数据库锁定
-```bash
-# 检查数据库文件权限
-ls -la src/database/app.db
-
-# 修复权限
-sudo chown www-data:www-data src/database/app.db
-```
-
-#### 4. 内存不足
-```bash
-# 检查内存使用
-free -h
-
-# 添加交换空间
-sudo fallocate -l 1G /swapfile
-sudo chmod 600 /swapfile
-sudo mkswap /swapfile
-sudo swapon /swapfile
-```
-
-### 日志分析
-```bash
-# 查看应用日志
+# 查看错误日志
 tail -f logs/ai-diary.log
-
-# 查看系统日志
-sudo journalctl -u ai-diary -f
-
-# 查看Nginx日志
-sudo tail -f /var/log/nginx/access.log
-sudo tail -f /var/log/nginx/error.log
 ```
 
-## 性能优化
+#### 2. AI功能不工作
+- 检查API密钥是否正确
+- 验证网络连接
+- 查看API调用日志
+- 确认API额度充足
 
-### 应用优化
-1. 使用数据库连接池
-2. 启用静态文件缓存
-3. 压缩响应内容
-4. 优化数据库查询
-
-### 服务器优化
-1. 调整Gunicorn worker数量
-2. 配置Nginx缓存
-3. 使用CDN加速静态资源
-4. 启用gzip压缩
-
-## 更新和维护
-
-### 应用更新
+#### 3. MCP服务器启动失败
 ```bash
-# 备份当前版本
-cp -r AI-Diary AI-Diary-backup
+# 检查uv安装
+uv --version
 
-# 拉取最新代码
-cd AI-Diary
-git pull origin main
+# 手动测试MCP服务器
+uvx mcp-server-time --help
 
-# 更新依赖
-pip install -r requirements.txt
-
-# 重启服务
-sudo systemctl restart ai-diary
+# 查看MCP日志
+tail -f logs/mcp.log
 ```
 
-### 定期维护
-1. 定期备份数据库
-2. 清理日志文件
-3. 更新系统包
-4. 监控磁盘空间
-5. 检查SSL证书有效期
+#### 4. 图片上传失败
+- 检查上传目录权限
+- 验证文件大小限制
+- 确认浏览器权限设置
 
-## 扩展部署
+#### 5. 移动端显示异常
+- 清除浏览器缓存
+- 检查CSS文件加载
+- 验证响应式设计
 
-### 负载均衡
+### 性能优化
+
+#### 1. 数据库优化
+```sql
+-- 创建索引
+CREATE INDEX idx_diary_created_at ON diary_entries(created_at);
+CREATE INDEX idx_diary_user_id ON diary_entries(user_id);
+```
+
+#### 2. 静态文件缓存
+```nginx
+location /static/ {
+    alias /opt/ai-diary/src/static/;
+    expires 1y;
+    add_header Cache-Control "public, immutable";
+    gzip on;
+    gzip_types text/css application/javascript;
+}
+```
+
+#### 3. 应用缓存
+```python
+# 使用Flask-Caching
+from flask_caching import Cache
+
+cache = Cache(app, config={'CACHE_TYPE': 'simple'})
+
+@cache.memoize(timeout=300)
+def get_daily_summary(date):
+    # 缓存每日汇总
+    pass
+```
+
+## 📈 扩展部署
+
+### 负载均衡部署
+
+#### 多实例部署
+```bash
+# 启动多个Gunicorn实例
+gunicorn -w 4 -b 127.0.0.1:5001 src.main:app &
+gunicorn -w 4 -b 127.0.0.1:5002 src.main:app &
+gunicorn -w 4 -b 127.0.0.1:5003 src.main:app &
+```
+
+#### Nginx负载均衡配置
 ```nginx
 upstream ai_diary_backend {
-    server 127.0.0.1:5000;
     server 127.0.0.1:5001;
     server 127.0.0.1:5002;
+    server 127.0.0.1:5003;
 }
 
 server {
@@ -536,45 +577,110 @@ server {
         proxy_pass http://ai_diary_backend;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     }
 }
 ```
 
-### 数据库分离
-考虑使用PostgreSQL或MySQL替代SQLite：
+### 数据库扩展
 
+#### 使用PostgreSQL
+```bash
+# 安装PostgreSQL
+sudo apt install postgresql postgresql-contrib
+
+# 创建数据库和用户
+sudo -u postgres psql
+CREATE DATABASE ai_diary;
+CREATE USER ai_diary_user WITH PASSWORD 'your_password';
+GRANT ALL PRIVILEGES ON DATABASE ai_diary TO ai_diary_user;
+```
+
+#### 修改配置
 ```python
-# 配置PostgreSQL
-DATABASE_URL = "postgresql://user:password@localhost/ai_diary"
+# 在配置中使用PostgreSQL
+DATABASE_URL = 'postgresql://ai_diary_user:your_password@localhost/ai_diary'
 ```
 
-### 容器编排
-使用Kubernetes进行大规模部署：
+## 🔄 更新和升级
 
-```yaml
-# k8s-deployment.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: ai-diary
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: ai-diary
-  template:
-    metadata:
-      labels:
-        app: ai-diary
-    spec:
-      containers:
-      - name: ai-diary
-        image: ai-diary:latest
-        ports:
-        - containerPort: 5000
+### 应用更新流程
+
+#### 1. 备份当前版本
+```bash
+# 备份数据库
+cp src/database/app.db backup/app_$(date +%Y%m%d).db
+
+# 备份配置
+cp -r src/static/config backup/config_$(date +%Y%m%d)
 ```
+
+#### 2. 下载新版本
+```bash
+# 下载新版本
+wget https://github.com/zhuchenyu2008/AI-Diary/archive/v2.1.tar.gz
+
+# 解压到临时目录
+tar -xzf v2.1.tar.gz -C /tmp/
+```
+
+#### 3. 更新应用
+```bash
+# 停止服务
+sudo systemctl stop ai-diary
+
+# 更新代码
+rsync -av --exclude='src/database/' --exclude='data/' /tmp/AI-Diary-2.1/ /opt/ai-diary/
+
+# 更新依赖
+source venv/bin/activate
+pip install -r requirements.txt
+
+# 运行数据库迁移（如果有）
+python src/migrate.py
+
+# 重启服务
+sudo systemctl start ai-diary
+```
+
+### 版本回滚
+
+#### 快速回滚
+```bash
+# 停止服务
+sudo systemctl stop ai-diary
+
+# 恢复备份
+cp backup/app_20250730.db src/database/app.db
+
+# 切换到旧版本代码
+git checkout v2.0
+
+# 重启服务
+sudo systemctl start ai-diary
+```
+
+## 📞 技术支持
+
+### 获取帮助
+- **GitHub Issues**: https://github.com/zhuchenyu2008/AI-Diary/issues
+- **文档**: 查看项目README和API文档
+- **社区**: 参与GitHub Discussions
+
+### 报告问题
+提交问题时请包含：
+1. 详细的错误描述
+2. 复现步骤
+3. 系统环境信息
+4. 相关日志文件
+
+### 贡献代码
+1. Fork项目
+2. 创建功能分支
+3. 提交更改
+4. 创建Pull Request
 
 ---
 
-本部署指南涵盖了从开发环境到生产环境的完整部署流程。根据实际需求选择合适的部署方式，并注意安全和性能优化。
+本部署指南涵盖了AI日记v2.0的完整部署流程。如有任何问题，请参考故障排除部分或联系技术支持。
 
