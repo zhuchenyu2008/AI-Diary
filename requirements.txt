@@ -6,4 +6,6 @@ openai==1.97.1
 requests==2.32.4
 Pillow==10.4.0
 python-dotenv==1.0.0
+aiohttp==3.9.5
+
 
