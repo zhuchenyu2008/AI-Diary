@@ -7,15 +7,13 @@ from flask import Flask, send_from_directory
 from flask_cors import CORS
 from src.models.user import db
 from src.models.diary import DiaryEntry, DailySummary, Config, Auth
-from src.models.mcp import MCPServer, MCPTool, MCPResource, MCPPrompt, MCPExecution
 from src.routes.user import user_bp
 from src.routes.auth import auth_bp
 from src.routes.diary import diary_bp
 from src.routes.config import config_bp
 from src.routes.admin import admin_bp
-from src.routes.mcp import mcp_bp
 
-app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
+app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'src', 'static'))
 app.config['SECRET_KEY'] = 'diary_app_secret_key_2025'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
@@ -23,7 +21,7 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 CORS(app)
 
 # 数据库配置
-app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), 'database', 'app.db')}"
+app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), 'src', 'database', 'app.db')}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 
@@ -33,7 +31,6 @@ app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(diary_bp, url_prefix='/api/diary')
 app.register_blueprint(config_bp, url_prefix='/api')
 app.register_blueprint(admin_bp, url_prefix='/api/admin')
-app.register_blueprint(mcp_bp, url_prefix='/api/mcp')
 
 def init_default_configs():
     """初始化默认配置"""
@@ -110,13 +107,5 @@ if __name__ == '__main__':
         db.create_all()
         init_default_configs()
     
-    # 启动定时任务服务
-    from src.services.scheduler_service import scheduler_service
-    scheduler_service.start(app)
-    
-    try:
-        app.run(host='0.0.0.0', port=5000, debug=True)
-    finally:
-        # 停止定时任务服务
-        scheduler_service.stop()
+    app.run(host='0.0.0.0', port=5001, debug=False)
 

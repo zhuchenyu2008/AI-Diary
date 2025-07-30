@@ -76,3 +76,38 @@ def change_password():
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
+
+@auth_bp.route('/change-password', methods=['POST'])
+def change_password_with_verification():
+    """修改密码（需要验证当前密码）"""
+    try:
+        # 检查是否已认证
+        if not session.get('authenticated', False):
+            return jsonify({'success': False, 'message': '未认证'}), 401
+        
+        data = request.json
+        current_password = data.get('current_password', '')
+        new_password = data.get('new_password', '')
+        
+        # 获取当前密码哈希
+        auth_record = Auth.query.first()
+        if not auth_record:
+            return jsonify({'success': False, 'message': '系统错误：未找到认证记录'}), 500
+        
+        # 验证当前密码
+        if simple_hash(current_password) != auth_record.password_hash:
+            return jsonify({'success': False, 'message': '当前密码错误'}), 400
+        
+        # 验证新密码格式（1-4位数字）
+        if not new_password.isdigit() or len(new_password) < 1 or len(new_password) > 4:
+            return jsonify({'success': False, 'message': '新密码必须是1-4位数字'}), 400
+        
+        # 更新密码
+        auth_record.password_hash = simple_hash(new_password)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': '密码修改成功'})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+

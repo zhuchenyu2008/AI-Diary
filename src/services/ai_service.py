@@ -82,12 +82,7 @@ class AIService:
             # 构建用户消息
             user_content = []
             
-            if text_content:
-                user_content.append({
-                    "type": "text",
-                    "text": f"文字内容：{text_content}"
-                })
-            
+            # 如果有图片，优先处理图片
             if image_path:
                 # 编码图片
                 base64_image = self._encode_image(image_path)
@@ -98,6 +93,19 @@ class AIService:
                             "url": f"data:image/jpeg;base64,{base64_image}"
                         }
                     })
+            
+            # 添加文字内容（如果有的话）
+            if text_content:
+                user_content.append({
+                    "type": "text",
+                    "text": f"文字内容：{text_content}"
+                })
+            elif image_path:
+                # 如果只有图片没有文字，添加默认提示
+                user_content.append({
+                    "type": "text",
+                    "text": "请分析这张图片中的内容。"
+                })
             
             if not user_content:
                 return "没有内容可分析"

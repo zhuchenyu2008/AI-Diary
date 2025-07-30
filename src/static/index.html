@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
@@ -63,6 +63,213 @@
       const markdownObserver = new MutationObserver(renderMarkdown);
       markdownObserver.observe(document.getElementById('root'), { childList: true, subtree: true });
       renderMarkdown();
+
+      // 实时AI分析状态检查
+      let analysisCheckInterval = null;
+      
+      function startAnalysisStatusCheck() {
+        if (analysisCheckInterval) {
+          clearInterval(analysisCheckInterval);
+        }
+        
+        analysisCheckInterval = setInterval(async () => {
+          try {
+            const response = await fetch('/api/diary/entries/today/analysis-status');
+            if (response.ok) {
+              const data = await response.json();
+              if (data.success) {
+                let hasAnalyzing = false;
+                data.entries.forEach(entry => {
+                  if (entry.is_analyzing) {
+                    hasAnalyzing = true;
+                  }
+                  // 更新页面中对应条目的AI分析内容
+                  updateEntryAnalysis(entry.id, entry.ai_analysis, entry.is_analyzing);
+                });
+                
+                // 如果没有正在分析的条目，停止检查
+                if (!hasAnalyzing) {
+                  clearInterval(analysisCheckInterval);
+                  analysisCheckInterval = null;
+                }
+              }
+            }
+          } catch (error) {
+            console.error('检查AI分析状态失败:', error);
+          }
+        }, 2000); // 每2秒检查一次
+      }
+      
+      function updateEntryAnalysis(entryId, analysis, isAnalyzing) {
+        // 查找页面中对应的AI分析元素并更新
+        const analysisElements = document.querySelectorAll(`[data-entry-id="${entryId}"] .ai-analysis-content`);
+        analysisElements.forEach(el => {
+          if (el.textContent !== analysis) {
+            el.textContent = analysis || '';
+            el.dataset.rendered = 'false'; // 重新渲染markdown
+            renderMarkdown();
+          }
+        });
+      }
+      
+      // 监听发送按钮点击，开始状态检查
+      document.addEventListener('click', (e) => {
+        if (e.target.textContent && e.target.textContent.includes('发送')) {
+          setTimeout(() => {
+            startAnalysisStatusCheck();
+          }, 1000);
+        }
+      });
+
+      // 图片功能增强
+      function setupImageFeatures() {
+        // 查找添加图片按钮并替换为两个按钮
+        const addImageBtn = [...document.querySelectorAll('button')].find(btn => 
+          btn.textContent.includes('添加图片') || btn.textContent.includes('添加照片')
+        );
+        
+        if (addImageBtn && !document.getElementById('camera-btn')) {
+          const container = addImageBtn.parentNode;
+          
+          // 创建拍照按钮
+          const cameraBtn = addImageBtn.cloneNode(true);
+          cameraBtn.id = 'camera-btn';
+          cameraBtn.innerHTML = '📷 拍照';
+          cameraBtn.onclick = openCamera;
+          
+          // 修改原按钮为上传图片
+          addImageBtn.innerHTML = '🖼️ 上传图片';
+          addImageBtn.id = 'upload-btn';
+          
+          // 插入拍照按钮
+          container.insertBefore(cameraBtn, addImageBtn);
+          
+          // 为上传按钮添加文件选择功能
+          addImageBtn.onclick = selectImageFile;
+        }
+      }
+
+      function selectImageFile() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            uploadImageFile(file);
+          }
+        };
+        input.click();
+      }
+
+      async function openCamera() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          alert('无法访问摄像头：您的浏览器不支持摄像头功能，或页面未在安全上下文(HTTPS)中加载。');
+          return;
+        }
+
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: 'environment' } // 优先使用后置摄像头
+          });
+          
+          // 创建拍照界面
+          const modal = document.createElement('div');
+          modal.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.9); z-index: 10000; display: flex; 
+            flex-direction: column; align-items: center; justify-content: center;
+          `;
+          
+          const video = document.createElement('video');
+          video.style.cssText = 'max-width: 90%; max-height: 70%; border-radius: 8px;';
+          video.srcObject = stream;
+          video.autoplay = true;
+          video.playsInline = true;
+          
+          const controls = document.createElement('div');
+          controls.style.cssText = 'margin-top: 20px; display: flex; gap: 20px;';
+          
+          const captureBtn = document.createElement('button');
+          captureBtn.textContent = '拍照';
+          captureBtn.style.cssText = `
+            padding: 12px 24px; background: #4F46E5; color: white; 
+            border: none; border-radius: 8px; font-size: 16px; cursor: pointer;
+          `;
+          
+          const cancelBtn = document.createElement('button');
+          cancelBtn.textContent = '取消';
+          cancelBtn.style.cssText = `
+            padding: 12px 24px; background: #6B7280; color: white; 
+            border: none; border-radius: 8px; font-size: 16px; cursor: pointer;
+          `;
+          
+          controls.appendChild(captureBtn);
+          controls.appendChild(cancelBtn);
+          modal.appendChild(video);
+          modal.appendChild(controls);
+          document.body.appendChild(modal);
+          
+          captureBtn.onclick = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0);
+            
+            canvas.toBlob(blob => {
+              const file = new File([blob], 'camera-photo.jpg', { type: 'image/jpeg' });
+              uploadImageFile(file);
+              stream.getTracks().forEach(track => track.stop());
+              document.body.removeChild(modal);
+            }, 'image/jpeg', 0.8);
+          };
+          
+          cancelBtn.onclick = () => {
+            stream.getTracks().forEach(track => track.stop());
+            document.body.removeChild(modal);
+          };
+          
+        } catch (error) {
+          alert('无法访问摄像头：' + error.message);
+        }
+      }
+
+      function uploadImageFile(file) {
+        // 创建文件输入元素并触发上传
+        const formData = new FormData();
+        formData.append('image', file);
+        
+        // 获取文本内容
+        const textArea = document.querySelector('textarea');
+        const textContent = textArea ? textArea.value : '';
+        if (textContent) {
+          formData.append('text_content', textContent);
+        }
+        
+        // 发送到服务器
+        fetch('/api/diary/entries', {
+          method: 'POST',
+          body: formData
+        }).then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // 清空输入框
+            if (textArea) textArea.value = '';
+            // 刷新页面或更新显示
+            setTimeout(() => location.reload(), 500);
+          } else {
+            alert('上传失败：' + data.message);
+          }
+        }).catch(error => {
+          alert('上传错误：' + error.message);
+        });
+      }
+
+      // 监听页面变化，设置图片功能
+      const imageObserver = new MutationObserver(setupImageFeatures);
+      imageObserver.observe(document.getElementById('root'), { childList: true, subtree: true });
+      setupImageFeatures();
     </script>
   </body>
 </html>

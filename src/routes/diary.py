@@ -67,11 +67,12 @@ def create_entry():
                 image_path = f'{UPLOAD_FOLDER}/{filename}'
                 full_image_path = file_path
         
-        # 创建日记条目
+        # 创建日记条目，初始AI分析状态为"AI理解中"
         entry = DiaryEntry(
             text_content=text_content,
             image_path=image_path,
-            timestamp=time_service.get_beijing_time()
+            timestamp=time_service.get_beijing_time(),
+            ai_analysis="AI理解中..." if (text_content or full_image_path) else None
         )
         
         db.session.add(entry)
@@ -264,6 +265,49 @@ def get_today_countdown():
             }
         })
         
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+
+@diary_bp.route('/entries/<int:entry_id>/analysis-status', methods=['GET'])
+@require_auth
+def get_analysis_status(entry_id):
+    """获取日记条目的AI分析状态"""
+    try:
+        entry = DiaryEntry.query.get_or_404(entry_id)
+        return jsonify({
+            'success': True,
+            'entry_id': entry_id,
+            'ai_analysis': entry.ai_analysis,
+            'is_analyzing': entry.ai_analysis == "AI理解中..." if entry.ai_analysis else False
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@diary_bp.route('/entries/today/analysis-status', methods=['GET'])
+@require_auth
+def get_today_analysis_status():
+    """获取今日所有条目的AI分析状态"""
+    try:
+        today = time_service.get_beijing_time().date()
+        entries = DiaryEntry.query.filter(
+            db.func.date(DiaryEntry.timestamp) == today
+        ).order_by(DiaryEntry.timestamp.desc()).all()
+        
+        result = []
+        for entry in entries:
+            result.append({
+                'id': entry.id,
+                'ai_analysis': entry.ai_analysis,
+                'is_analyzing': entry.ai_analysis == "AI理解中..." if entry.ai_analysis else False,
+                'timestamp': entry.timestamp.isoformat()
+            })
+        
+        return jsonify({
+            'success': True,
+            'entries': result
+        })
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
