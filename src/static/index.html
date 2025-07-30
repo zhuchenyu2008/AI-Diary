@@ -124,7 +124,7 @@
       // 图片功能增强
       function setupImageFeatures() {
         // 查找添加图片按钮并替换为两个按钮
-        const addImageBtn = document.querySelector('button:has(svg), button[class*="pink"], button:contains("添加图片")') || 
+        const addImageBtn = document.querySelector('button:has(svg), button[class*="pink"]') ||
                            [...document.querySelectorAll('button')].find(btn => btn.textContent.includes('添加图片'));
         
         if (addImageBtn && !document.getElementById('camera-btn')) {
