@@ -124,8 +124,9 @@
       // 图片功能增强
       function setupImageFeatures() {
         // 查找添加图片按钮并替换为两个按钮
-        const addImageBtn = document.querySelector('button:has(svg), button[class*="pink"], button:contains("添加图片")') || 
-                           [...document.querySelectorAll('button')].find(btn => btn.textContent.includes('添加图片'));
+        const addImageBtn = [...document.querySelectorAll('button')].find(btn => 
+          btn.textContent.includes('添加图片') || btn.textContent.includes('添加照片')
+        );
         
         if (addImageBtn && !document.getElementById('camera-btn')) {
           const container = addImageBtn.parentNode;
@@ -142,7 +143,23 @@
           
           // 插入拍照按钮
           container.insertBefore(cameraBtn, addImageBtn);
+          
+          // 为上传按钮添加文件选择功能
+          addImageBtn.onclick = selectImageFile;
         }
+      }
+
+      function selectImageFile() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            uploadImageFile(file);
+          }
+        };
+        input.click();
       }
 
       async function openCamera() {
