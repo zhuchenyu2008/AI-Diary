@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCP 配置 - AI日记</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .modal {
+            display: none;
+        }
+        .modal.show {
+            display: flex;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- 头部 -->
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">MCP 配置</h1>
+                <p class="text-gray-600 mt-2">管理 Model Context Protocol 服务器</p>
+            </div>
+            <div class="flex gap-4">
+                <button onclick="showCreateModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                    添加服务器
+                </button>
+                <a href="/" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
+                    返回主页
+                </a>
+            </div>
+        </div>
+
+        <!-- 服务器列表 -->
+        <div class="bg-white rounded-lg shadow-md">
+            <div class="p-6 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-900">MCP 服务器</h2>
+            </div>
+            <div id="servers-list" class="p-6">
+                <!-- 服务器列表将在这里动态加载 -->
+            </div>
+        </div>
+
+        <!-- 内置服务器模板 -->
+        <div class="bg-white rounded-lg shadow-md mt-8">
+            <div class="p-6 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-900">内置服务器模板</h2>
+                <p class="text-gray-600 mt-1">快速添加常用的MCP服务器</p>
+            </div>
+            <div id="builtin-servers" class="p-6">
+                <!-- 内置服务器模板将在这里动态加载 -->
+            </div>
+        </div>
+
+        <!-- 执行历史 -->
+        <div class="bg-white rounded-lg shadow-md mt-8">
+            <div class="p-6 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-900">执行历史</h2>
+            </div>
+            <div id="executions-list" class="p-6">
+                <!-- 执行历史将在这里动态加载 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 创建/编辑服务器模态框 -->
+    <div id="server-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+        <div class="bg-white rounded-lg max-w-2xl w-full mx-4 max-h-screen overflow-y-auto">
+            <div class="p-6 border-b border-gray-200">
+                <h3 id="modal-title" class="text-lg font-semibold text-gray-900">添加 MCP 服务器</h3>
+            </div>
+            <form id="server-form" class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">服务器名称</label>
+                        <input type="text" id="server-name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">描述</label>
+                        <textarea id="server-description" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">服务器类型</label>
+                        <select id="server-type" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="toggleTransportOptions()">
+                            <option value="local">本地服务器</option>
+                            <option value="remote">远程服务器</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">传输方式</label>
+                        <select id="transport" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="toggleTransportOptions()">
+                            <option value="stdio">STDIO</option>
+                            <option value="http">HTTP</option>
+                        </select>
+                    </div>
+                    
+                    <!-- STDIO 配置 -->
+                    <div id="stdio-config" class="md:col-span-2">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">启动命令</label>
+                                <input type="text" id="command" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="python">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">命令参数 (JSON数组)</label>
+                                <input type="text" id="args" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder='["-m", "mcp_server"]'>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- HTTP 配置 -->
+                    <div id="http-config" class="md:col-span-2" style="display: none;">
+                        <div class="grid grid-cols-1 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">服务器 URL</label>
+                                <input type="url" id="url" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="https://api.example.com/mcp">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">HTTP 头部 (JSON对象)</label>
+                                <textarea id="headers" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3" placeholder='{"Authorization": "Bearer token"}'></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">连接超时 (秒)</label>
+                        <input type="number" id="timeout" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" value="30" min="5" max="300">
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <label class="flex items-center">
+                            <input type="checkbox" id="enabled" class="mr-2" checked>
+                            <span class="text-sm text-gray-700">启用服务器</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="auto-start" class="mr-2" checked>
+                            <span class="text-sm text-gray-700">自动启动</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-4 mt-6">
+                    <button type="button" onclick="hideModal()" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50">
+                        取消
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                        保存
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 服务器详情模态框 -->
+    <div id="server-detail-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+        <div class="bg-white rounded-lg max-w-4xl w-full mx-4 max-h-screen overflow-y-auto">
+            <div class="p-6 border-b border-gray-200">
+                <h3 id="detail-modal-title" class="text-lg font-semibold text-gray-900">服务器详情</h3>
+            </div>
+            <div class="p-6">
+                <!-- 标签页 -->
+                <div class="border-b border-gray-200 mb-6">
+                    <nav class="-mb-px flex space-x-8">
+                        <button onclick="showTab('tools')" class="tab-button py-2 px-1 border-b-2 border-blue-500 text-blue-600 font-medium text-sm">
+                            工具
+                        </button>
+                        <button onclick="showTab('resources')" class="tab-button py-2 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+                            资源
+                        </button>
+                        <button onclick="showTab('executions')" class="tab-button py-2 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+                            执行历史
+                        </button>
+                    </nav>
+                </div>
+                
+                <!-- 工具标签页 -->
+                <div id="tools-tab" class="tab-content active">
+                    <div id="tools-list">
+                        <!-- 工具列表将在这里动态加载 -->
+                    </div>
+                </div>
+                
+                <!-- 资源标签页 -->
+                <div id="resources-tab" class="tab-content">
+                    <div id="resources-list">
+                        <!-- 资源列表将在这里动态加载 -->
+                    </div>
+                </div>
+                
+                <!-- 执行历史标签页 -->
+                <div id="executions-tab" class="tab-content">
+                    <div id="server-executions-list">
+                        <!-- 执行历史将在这里动态加载 -->
+                    </div>
+                </div>
+            </div>
+            <div class="p-6 border-t border-gray-200">
+                <button onclick="hideDetailModal()" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
+                    关闭
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentServerId = null;
+        let currentEditingServer = null;
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadServers();
+            loadBuiltinServers();
+            loadExecutions();
+            
+            // 设置表单提交处理
+            document.getElementById('server-form').addEventListener('submit', handleServerSubmit);
+        });
+
+        // 切换传输选项显示
+        function toggleTransportOptions() {
+            const transport = document.getElementById('transport').value;
+            const stdioConfig = document.getElementById('stdio-config');
+            const httpConfig = document.getElementById('http-config');
+            
+            if (transport === 'stdio') {
+                stdioConfig.style.display = 'block';
+                httpConfig.style.display = 'none';
+            } else {
+                stdioConfig.style.display = 'none';
+                httpConfig.style.display = 'block';
+            }
+        }
+
+        // 显示创建模态框
+        function showCreateModal() {
+            currentEditingServer = null;
+            document.getElementById('modal-title').textContent = '添加 MCP 服务器';
+            document.getElementById('server-form').reset();
+            document.getElementById('enabled').checked = true;
+            document.getElementById('auto-start').checked = true;
+            document.getElementById('timeout').value = 30;
+            toggleTransportOptions();
+            document.getElementById('server-modal').classList.add('show');
+        }
+
+        // 显示编辑模态框
+        function showEditModal(server) {
+            currentEditingServer = server;
+            document.getElementById('modal-title').textContent = '编辑 MCP 服务器';
+            
+            // 填充表单
+            document.getElementById('server-name').value = server.name;
+            document.getElementById('server-description').value = server.description || '';
+            document.getElementById('server-type').value = server.server_type;
+            document.getElementById('transport').value = server.transport;
+            document.getElementById('command').value = server.command || '';
+            document.getElementById('args').value = server.args ? JSON.stringify(server.args) : '';
+            document.getElementById('url').value = server.url || '';
+            document.getElementById('headers').value = server.headers ? JSON.stringify(server.headers) : '';
+            document.getElementById('timeout').value = server.timeout;
+            document.getElementById('enabled').checked = server.enabled;
+            document.getElementById('auto-start').checked = server.auto_start;
+            
+            toggleTransportOptions();
+            document.getElementById('server-modal').classList.add('show');
+        }
+
+        // 隐藏模态框
+        function hideModal() {
+            document.getElementById('server-modal').classList.remove('show');
+        }
+
+        // 隐藏详情模态框
+        function hideDetailModal() {
+            document.getElementById('server-detail-modal').classList.remove('show');
+        }
+
+        // 处理表单提交
+        async function handleServerSubmit(e) {
+            e.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('server-name').value,
+                description: document.getElementById('server-description').value,
+                server_type: document.getElementById('server-type').value,
+                transport: document.getElementById('transport').value,
+                command: document.getElementById('command').value || null,
+                args: document.getElementById('args').value ? JSON.parse(document.getElementById('args').value) : null,
+                url: document.getElementById('url').value || null,
+                headers: document.getElementById('headers').value ? JSON.parse(document.getElementById('headers').value) : null,
+                timeout: parseInt(document.getElementById('timeout').value),
+                enabled: document.getElementById('enabled').checked,
+                auto_start: document.getElementById('auto-start').checked
+            };
+            
+            try {
+                let response;
+                if (currentEditingServer) {
+                    response = await fetch(`/api/mcp/servers/${currentEditingServer.id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formData)
+                    });
+                } else {
+                    response = await fetch('/api/mcp/servers', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formData)
+                    });
+                }
+                
+                const result = await response.json();
+                if (result.success) {
+                    hideModal();
+                    loadServers();
+                    alert(result.message);
+                } else {
+                    alert('操作失败: ' + result.message);
+                }
+            } catch (error) {
+                alert('操作失败: ' + error.message);
+            }
+        }
+
+        // 加载服务器列表
+        async function loadServers() {
+            try {
+                const response = await fetch('/api/mcp/servers');
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayServers(result.servers);
+                } else {
+                    document.getElementById('servers-list').innerHTML = '<p class="text-red-600">加载失败: ' + result.message + '</p>';
+                }
+            } catch (error) {
+                document.getElementById('servers-list').innerHTML = '<p class="text-red-600">加载失败: ' + error.message + '</p>';
+            }
+        }
+
+        // 显示服务器列表
+        function displayServers(servers) {
+            const container = document.getElementById('servers-list');
+            
+            if (servers.length === 0) {
+                container.innerHTML = '<p class="text-gray-500">暂无MCP服务器</p>';
+                return;
+            }
+            
+            const html = servers.map(server => `
+                <div class="border border-gray-200 rounded-lg p-4 mb-4">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-3">
+                                <h3 class="text-lg font-medium text-gray-900">${server.name}</h3>
+                                <span class="px-2 py-1 text-xs rounded-full ${server.enabled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+                                    ${server.enabled ? '已启用' : '已禁用'}
+                                </span>
+                                <span class="px-2 py-1 text-xs rounded-full ${server.status.connected ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800'}">
+                                    ${server.status.connected ? '已连接' : '未连接'}
+                                </span>
+                            </div>
+                            <p class="text-gray-600 mt-1">${server.description || '无描述'}</p>
+                            <div class="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                                <span>类型: ${server.server_type === 'local' ? '本地' : '远程'}</span>
+                                <span>传输: ${server.transport.toUpperCase()}</span>
+                                <span>超时: ${server.timeout}s</span>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            ${server.status.connected ? 
+                                `<button onclick="stopServer(${server.id})" class="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700">停止</button>` :
+                                `<button onclick="startServer(${server.id})" class="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700">启动</button>`
+                            }
+                            <button onclick="showServerDetail(${server.id})" class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">详情</button>
+                            <button onclick="showEditModal(${JSON.stringify(server).replace(/"/g, '&quot;')})" class="px-3 py-1 text-sm bg-yellow-600 text-white rounded hover:bg-yellow-700">编辑</button>
+                            <button onclick="deleteServer(${server.id})" class="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700">删除</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            container.innerHTML = html;
+        }
+
+        // 启动服务器
+        async function startServer(serverId) {
+            try {
+                const response = await fetch(`/api/mcp/servers/${serverId}/start`, {
+                    method: 'POST'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    loadServers();
+                    alert(result.message);
+                } else {
+                    alert('启动失败: ' + result.message);
+                }
+            } catch (error) {
+                alert('启动失败: ' + error.message);
+            }
+        }
+
+        // 停止服务器
+        async function stopServer(serverId) {
+            try {
+                const response = await fetch(`/api/mcp/servers/${serverId}/stop`, {
+                    method: 'POST'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    loadServers();
+                    alert(result.message);
+                } else {
+                    alert('停止失败: ' + result.message);
+                }
+            } catch (error) {
+                alert('停止失败: ' + error.message);
+            }
+        }
+
+        // 删除服务器
+        async function deleteServer(serverId) {
+            if (!confirm('确定要删除这个服务器吗？此操作不可恢复。')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/mcp/servers/${serverId}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    loadServers();
+                    alert(result.message);
+                } else {
+                    alert('删除失败: ' + result.message);
+                }
+            } catch (error) {
+                alert('删除失败: ' + error.message);
+            }
+        }
+
+        // 显示服务器详情
+        async function showServerDetail(serverId) {
+            currentServerId = serverId;
+            document.getElementById('server-detail-modal').classList.add('show');
+            showTab('tools');
+        }
+
+        // 切换标签页
+        function showTab(tabName) {
+            // 隐藏所有标签内容
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 重置所有标签按钮样式
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('border-blue-500', 'text-blue-600');
+                button.classList.add('border-transparent', 'text-gray-500');
+            });
+            
+            // 显示选中的标签内容
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            // 更新选中的标签按钮样式
+            event.target.classList.remove('border-transparent', 'text-gray-500');
+            event.target.classList.add('border-blue-500', 'text-blue-600');
+            
+            // 加载对应的数据
+            if (tabName === 'tools') {
+                loadTools(currentServerId);
+            } else if (tabName === 'resources') {
+                loadResources(currentServerId);
+            } else if (tabName === 'executions') {
+                loadServerExecutions(currentServerId);
+            }
+        }
+
+        // 加载工具列表
+        async function loadTools(serverId) {
+            try {
+                const response = await fetch(`/api/mcp/servers/${serverId}/tools`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayTools(result.tools);
+                } else {
+                    document.getElementById('tools-list').innerHTML = '<p class="text-red-600">加载失败: ' + result.message + '</p>';
+                }
+            } catch (error) {
+                document.getElementById('tools-list').innerHTML = '<p class="text-red-600">加载失败: ' + error.message + '</p>';
+            }
+        }
+
+        // 显示工具列表
+        function displayTools(tools) {
+            const container = document.getElementById('tools-list');
+            
+            if (tools.length === 0) {
+                container.innerHTML = '<p class="text-gray-500">暂无工具</p>';
+                return;
+            }
+            
+            const html = tools.map(tool => `
+                <div class="border border-gray-200 rounded-lg p-4 mb-4">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <h4 class="text-lg font-medium text-gray-900">${tool.name}</h4>
+                            <p class="text-gray-600 mt-1">${tool.description || '无描述'}</p>
+                            ${tool.inputSchema ? `
+                                <details class="mt-2">
+                                    <summary class="text-sm text-blue-600 cursor-pointer">查看输入模式</summary>
+                                    <pre class="mt-2 p-2 bg-gray-100 rounded text-xs overflow-x-auto">${JSON.stringify(tool.inputSchema, null, 2)}</pre>
+                                </details>
+                            ` : ''}
+                        </div>
+                        <button onclick="callTool('${tool.name}')" class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
+                            调用
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+            
+            container.innerHTML = html;
+        }
+
+        // 调用工具
+        async function callTool(toolName) {
+            const argumentsStr = prompt('请输入工具参数 (JSON格式):', '{}');
+            if (argumentsStr === null) return;
+            
+            try {
+                const arguments = JSON.parse(argumentsStr);
+                
+                const response = await fetch(`/api/mcp/servers/${currentServerId}/tools/${toolName}/call`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ arguments })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('调用成功:\n' + JSON.stringify(result.result, null, 2));
+                } else {
+                    alert('调用失败: ' + result.message);
+                }
+            } catch (error) {
+                alert('调用失败: ' + error.message);
+            }
+        }
+
+        // 加载资源列表
+        async function loadResources(serverId) {
+            try {
+                const response = await fetch(`/api/mcp/servers/${serverId}/resources`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayResources(result.resources);
+                } else {
+                    document.getElementById('resources-list').innerHTML = '<p class="text-red-600">加载失败: ' + result.message + '</p>';
+                }
+            } catch (error) {
+                document.getElementById('resources-list').innerHTML = '<p class="text-red-600">加载失败: ' + error.message + '</p>';
+            }
+        }
+
+        // 显示资源列表
+        function displayResources(resources) {
+            const container = document.getElementById('resources-list');
+            
+            if (resources.length === 0) {
+                container.innerHTML = '<p class="text-gray-500">暂无资源</p>';
+                return;
+            }
+            
+            const html = resources.map(resource => `
+                <div class="border border-gray-200 rounded-lg p-4 mb-4">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <h4 class="text-lg font-medium text-gray-900">${resource.name || resource.uri}</h4>
+                            <p class="text-gray-600 mt-1">${resource.description || '无描述'}</p>
+                            <div class="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                                <span>URI: ${resource.uri}</span>
+                                ${resource.mimeType ? `<span>类型: ${resource.mimeType}</span>` : ''}
+                            </div>
+                        </div>
+                        <button onclick="readResource('${resource.uri}')" class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
+                            读取
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+            
+            container.innerHTML = html;
+        }
+
+        // 读取资源
+        async function readResource(uri) {
+            try {
+                const response = await fetch(`/api/mcp/servers/${currentServerId}/resources/read`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ uri })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('读取成功:\n' + JSON.stringify(result.result, null, 2));
+                } else {
+                    alert('读取失败: ' + result.message);
+                }
+            } catch (error) {
+                alert('读取失败: ' + error.message);
+            }
+        }
+
+        // 加载服务器执行历史
+        async function loadServerExecutions(serverId) {
+            try {
+                const response = await fetch(`/api/mcp/executions?server_id=${serverId}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayExecutions(result.executions, 'server-executions-list');
+                } else {
+                    document.getElementById('server-executions-list').innerHTML = '<p class="text-red-600">加载失败: ' + result.message + '</p>';
+                }
+            } catch (error) {
+                document.getElementById('server-executions-list').innerHTML = '<p class="text-red-600">加载失败: ' + error.message + '</p>';
+            }
+        }
+
+        // 加载内置服务器模板
+        async function loadBuiltinServers() {
+            try {
+                const response = await fetch('/api/mcp/builtin-servers');
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayBuiltinServers(result.servers);
+                } else {
+                    document.getElementById('builtin-servers').innerHTML = '<p class="text-red-600">加载失败: ' + result.message + '</p>';
+                }
+            } catch (error) {
+                document.getElementById('builtin-servers').innerHTML = '<p class="text-red-600">加载失败: ' + error.message + '</p>';
+            }
+        }
+
+        // 显示内置服务器模板
+        function displayBuiltinServers(servers) {
+            const container = document.getElementById('builtin-servers');
+            
+            const html = servers.map(server => `
+                <div class="border border-gray-200 rounded-lg p-4 mb-4">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <h3 class="text-lg font-medium text-gray-900">${server.display_name}</h3>
+                            <p class="text-gray-600 mt-1">${server.description}</p>
+                            <div class="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                                <span>类型: ${server.server_type === 'local' ? '本地' : '远程'}</span>
+                                <span>传输: ${server.transport.toUpperCase()}</span>
+                                <span>功能: ${server.capabilities.join(', ')}</span>
+                            </div>
+                            ${server.tools ? `
+                                <details class="mt-2">
+                                    <summary class="text-sm text-blue-600 cursor-pointer">查看工具 (${server.tools.length})</summary>
+                                    <ul class="mt-2 ml-4 text-sm text-gray-600">
+                                        ${server.tools.map(tool => `<li>• ${tool.name}: ${tool.description}</li>`).join('')}
+                                    </ul>
+                                </details>
+                            ` : ''}
+                        </div>
+                        <button onclick="createFromTemplate('${server.name}')" class="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700">
+                            添加
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+            
+            container.innerHTML = html;
+        }
+
+        // 从模板创建服务器
+        async function createFromTemplate(templateName) {
+            const customName = prompt('请输入自定义服务器名称:');
+            if (!customName) return;
+            
+            try {
+                const response = await fetch('/api/mcp/servers/create-from-template', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        template_name: templateName,
+                        custom_name: customName
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    loadServers();
+                    alert(result.message);
+                } else {
+                    alert('创建失败: ' + result.message);
+                }
+            } catch (error) {
+                alert('创建失败: ' + error.message);
+            }
+        }
+
+        // 加载执行历史
+        async function loadExecutions() {
+            try {
+                const response = await fetch('/api/mcp/executions');
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayExecutions(result.executions, 'executions-list');
+                } else {
+                    document.getElementById('executions-list').innerHTML = '<p class="text-red-600">加载失败: ' + result.message + '</p>';
+                }
+            } catch (error) {
+                document.getElementById('executions-list').innerHTML = '<p class="text-red-600">加载失败: ' + error.message + '</p>';
+            }
+        }
+
+        // 显示执行历史
+        function displayExecutions(executions, containerId) {
+            const container = document.getElementById(containerId);
+            
+            if (executions.length === 0) {
+                container.innerHTML = '<p class="text-gray-500">暂无执行历史</p>';
+                return;
+            }
+            
+            const html = executions.map(execution => `
+                <div class="border border-gray-200 rounded-lg p-4 mb-4">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-3">
+                                <h4 class="text-lg font-medium text-gray-900">${execution.target_name}</h4>
+                                <span class="px-2 py-1 text-xs rounded-full ${execution.status === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                    ${execution.status === 'success' ? '成功' : '失败'}
+                                </span>
+                                <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+                                    ${execution.execution_type}
+                                </span>
+                            </div>
+                            <div class="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                                <span>时间: ${new Date(execution.created_at).toLocaleString()}</span>
+                                <span>耗时: ${execution.execution_time}ms</span>
+                            </div>
+                            ${execution.error_message ? `
+                                <p class="text-red-600 mt-2 text-sm">${execution.error_message}</p>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            container.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
+
