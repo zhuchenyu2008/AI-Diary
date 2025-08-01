@@ -41,11 +41,13 @@
 - 可配置推送开关
 - 支持测试连接功能
 
-### 🔧 MCP功能
-- **可视化配置界面**: 通过Web界面管理MCP服务器
-- **内置服务器模板**: 预置时间和位置服务器
-- **执行历史**: 查看MCP工具调用历史
-- **标准兼容**: 完全符合MCP协议标准
+### 🔧 MCP功能（核心增强）
+- **一键添加**: 支持标准MCP配置格式一键导入
+- **内置服务器**: 预置时间、位置、搜索等多种MCP服务器
+- **智能配置**: 自动解析标准MCP配置JSON
+- **可视化界面**: 完整的Web界面管理MCP服务器
+- **执行跟踪**: 详细的历史记录和调试信息
+- **协议标准**: 完全兼容Model Context Protocol标准
 
 ## 技术架构
 
@@ -139,10 +141,10 @@ python src/main.py
 4. 配置启动命令和参数
 5. 点击"保存"
 
-##### 方式三：使用标准MCP配置格式
+##### 方式三：使用标准MCP配置格式（推荐）
 1. 点击"添加服务器"按钮
 2. 选择"JSON配置"模式
-3. 输入标准的MCP服务器配置JSON格式：
+3. **直接粘贴标准MCP配置**，无需任何修改：
 
 ```json
 {
@@ -153,21 +155,13 @@ python src/main.py
         "mcp-server-time",
         "--local-timezone=America/New_York"
       ]
-    },
-    "filesystem": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "/Users/username/Desktop",
-        "/Users/username/Downloads"
-      ]
     }
   }
 }
 ```
 
-4. 点击"保存"，系统会自动解析并创建多个服务器
+4. 点击"保存"，系统**自动解析并立即添加**所有服务器
+5. **支持批量添加**，一次可导入多个服务器配置
 
 ##### MCP配置说明
 - **服务器名称**: 唯一标识符，用于区分不同的MCP服务器
@@ -178,7 +172,19 @@ python src/main.py
 
 ##### 常用MCP服务器示例
 
-**时间服务器**:
+**时间服务器**（纽约时区）：
+```json
+{
+  "mcpServers": {
+    "time": {
+      "command": "uvx",
+      "args": ["mcp-server-time", "--local-timezone=America/New_York"]
+    }
+  }
+}
+```
+
+**时间服务器**（自定义时区）：
 ```json
 {
   "mcpServers": {
@@ -190,28 +196,70 @@ python src/main.py
 }
 ```
 
-**文件系统服务器**:
+**文件系统服务器**（自定义目录）：
 ```json
 {
   "mcpServers": {
     "filesystem": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/path/to/directory"]
+      "command": "uvx",
+      "args": ["mcp-server-filesystem", "--roots", "./workspace"]
     }
   }
 }
 ```
 
-**自定义Python服务器**:
+**Brave搜索服务器**:
 ```json
 {
   "mcpServers": {
-    "custom": {
-      "command": "python",
-      "args": ["-m", "my_mcp_server", "--config", "/path/to/config.json"]
+    "brave-search": {
+      "command": "uvx",
+      "args": ["mcp-server-brave-search"]
     }
   }
 }
+```
+
+**多服务配置示例**:
+```json
+{
+  "mcpServers": {
+    "time": {
+      "command": "uvx",
+      "args": ["mcp-server-time", "--local-timezone=America/New_York"]
+    },
+    "filesystem": {
+      "command": "uvx",
+      "args": ["mcp-server-filesystem", "--roots", "./workspace"]
+    },
+    "brave-search": {
+      "command": "uvx",
+      "args": ["mcp-server-brave-search"]
+    }
+  }
+}
+```
+
+##### MCP使用流程示意
+
+```mermaid
+graph TD
+    A[用户点击"添加服务器"] --> B{选择添加方式}
+    B -->|内置模板| C[选择预置服务器]
+    B -->|手动配置| D[填写服务器参数]
+    B -->|JSON配置| E[粘贴标准MCP配置]
+    
+    C --> F[点击"一键添加"]
+    E --> G[系统自动解析]
+    D --> H[逐步填写参数]
+    
+    F --> I[服务器自动创建]
+    G --> I
+    H --> I
+    
+    I --> J[可在服务器列表查看]
+    J --> K[启动服务器连接]
+    K --> L[AI可使用MCP工具]
 ```
 
 ## 项目结构
