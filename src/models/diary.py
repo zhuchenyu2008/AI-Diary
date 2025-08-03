@@ -12,6 +12,7 @@ class DiaryEntry(db.Model):
     text_content = db.Column(db.Text)  # 用户输入的文字内容
     image_path = db.Column(db.String(255))  # 图片存储路径
     ai_analysis = db.Column(db.Text)  # AI分析结果
+    is_daily_summary = db.Column(db.Boolean, default=False)  # 是否为每日总结
     created_at = db.Column(db.DateTime, default=lambda: time_service.get_beijing_time())
     
     def __repr__(self):
@@ -24,6 +25,7 @@ class DiaryEntry(db.Model):
             'text_content': self.text_content,
             'image_path': self.image_path,
             'ai_analysis': self.ai_analysis,
+            'is_daily_summary': self.is_daily_summary,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
@@ -32,7 +34,7 @@ class DailySummary(db.Model):
     __tablename__ = 'daily_summaries'
     
     id = db.Column(db.Integer, primary_key=True)
-    date = db.Column(db.Date, unique=True, nullable=False)  # 日期（年-月-日）
+    date = db.Column(db.Date, nullable=False)  # 日期（允许重复）
     summary_content = db.Column(db.Text, nullable=False)  # AI汇总的日记内容
     entry_count = db.Column(db.Integer, default=0)  # 当日条目数量
     created_at = db.Column(db.DateTime, default=lambda: time_service.get_beijing_time())

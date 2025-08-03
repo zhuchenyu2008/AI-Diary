@@ -102,9 +102,29 @@ def serve(path):
             return "index.html not found", 404
 
 
+def upgrade_database():
+    """升级数据库结构"""
+    try:
+        # 检查 diary_entries 表是否有 is_daily_summary 字段
+        from sqlalchemy import inspect, text
+        inspector = inspect(db.engine)
+        columns = [col['name'] for col in inspector.get_columns('diary_entries')]
+        
+        if 'is_daily_summary' not in columns:
+            # 添加 is_daily_summary 字段
+            with db.engine.connect() as connection:
+                connection.execute(text('ALTER TABLE diary_entries ADD COLUMN is_daily_summary BOOLEAN DEFAULT FALSE'))
+                connection.commit()
+            print("数据库升级完成：添加了 is_daily_summary 字段")
+    except Exception as e:
+        print(f"数据库升级失败: {e}")
+        # 如果升级失败，继续运行（可能字段已存在）
+        pass
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
+        upgrade_database()  # 升级数据库结构
         init_default_configs()
     
     # 启动定时任务服务

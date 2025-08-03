@@ -4,9 +4,12 @@ from src.models.diary import DiaryEntry, DailySummary, db
 from src.services.ai_service import ai_service
 from datetime import datetime, date, timedelta
 from src.services.time_service import time_service
+import logging
 import os
 import uuid
 import threading
+
+logger = logging.getLogger(__name__)
 
 diary_bp = Blueprint('diary', __name__)
 
@@ -108,6 +111,76 @@ def create_entry():
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
+@diary_bp.route('/generate-daily-summary', methods=['POST'])
+@require_auth
+def generate_daily_summary():
+    """手动生成指定日期的每日总结"""
+    try:
+        data = request.get_json()
+        target_date = data.get('date')
+        
+        if not target_date:
+            return jsonify({'success': False, 'message': '请提供日期'}), 400
+        
+        # 解析日期
+        try:
+            date_obj = datetime.strptime(target_date, '%Y-%m-%d').date()
+        except ValueError:
+            return jsonify({'success': False, 'message': '日期格式错误'}), 400
+        
+        # 获取指定日期的所有日记条目（排除已存在的每日总结）
+        entries = DiaryEntry.query.filter(
+            db.func.date(DiaryEntry.timestamp) == date_obj,
+            DiaryEntry.is_daily_summary != True
+        ).all()
+        
+        if not entries:
+            return jsonify({'success': False, 'message': '该日期没有日记条目'}), 400
+        
+        # 对于手动触发，允许生成多个总结（不限制）
+        # 注释掉原有的限制检查
+        # existing_summary = DailySummary.query.filter_by(date=date_obj).first()
+        # if existing_summary:
+        #     return jsonify({'success': False, 'message': '该日期已有每日总结'}), 400
+        
+        # 导入调度服务并生成总结（强制更新已存在的总结）
+        from src.services.scheduler_service import scheduler_service
+        
+        # 使用应用上下文手动调用生成总结，强制更新已存在的总结
+        from src.main import app
+        with app.app_context():
+            try:
+                # 删除现有的总结以实现重新生成
+                existing_summary = DailySummary.query.filter_by(date=date_obj).first()
+                if existing_summary:
+                    db.session.delete(existing_summary)
+                    db.session.commit()
+                    logger.info(f"删除现有总结，准备重新生成日期 {date_obj} 的汇总")
+                
+                # 生成新的总结
+                summary_content = scheduler_service._generate_daily_summary(date_obj, force_update=True)
+                summary_text = summary_content or "总结内容为空"
+            except Exception as e:
+                logger.error(f"手动生成总结失败: {e}")
+                summary_text = None
+        
+        print(f"生成总结文本: {summary_text}")
+        
+        if summary_text and summary_text.strip() and "失败" not in summary_text:
+            return jsonify({
+                'success': True, 
+                'message': '每日总结生成成功',
+                'summary': summary_text
+            }), 201
+        else:
+            error_msg = summary_text or '生成总结时出现未知错误'
+            print(f"生成总结失败原因: {error_msg}")
+            return jsonify({'success': False, 'message': f'生成总结失败: {error_msg}'}), 500
+            
+    except Exception as e:
+        print(f"生成每日总结失败: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 @diary_bp.route('/entries', methods=['GET'])
 @require_auth
 def get_entries():
@@ -119,6 +192,11 @@ def get_entries():
         date_str = request.args.get('date')  # 格式: YYYY-MM-DD
         
         query = DiaryEntry.query
+        
+        # 时间线视图：只显示普通日记，排除每日总结
+        if request.args.get('view') != 'history':  # 默认时间线视图
+            query = query.filter(DiaryEntry.is_daily_summary != True)
+        # 历史日记视图：显示包括每日总结在内的所有记录
         
         # 按日期过滤
         if date_str:
@@ -161,6 +239,44 @@ def get_entry(entry_id):
             'success': True,
             'entry': entry.to_dict()
         })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@diary_bp.route('/entries/<int:entry_id>', methods=['PUT'])
+@require_auth
+def update_entry(entry_id):
+    """更新日记条目"""
+    try:
+        entry = DiaryEntry.query.get_or_404(entry_id)
+        
+        # 获取新的文本内容
+        data = request.get_json()
+        new_text = data.get('text_content', '').strip()
+        
+        if not new_text:
+            return jsonify({'success': False, 'message': '文本内容不能为空'}), 400
+        
+        # 更新文本内容
+        entry.text_content = new_text
+        
+        # 如果有新的文本内容，重新进行AI分析
+        entry.ai_analysis = "AI理解中..."
+        db.session.commit()
+        
+        # 异步进行AI分析
+        thread = threading.Thread(
+            target=analyze_entry_async,
+            args=(entry.id, new_text, None)
+        )
+        thread.daemon = True
+        thread.start()
+        
+        return jsonify({
+            'success': True,
+            'message': '日记条目更新成功',
+            'entry': entry.to_dict()
+        })
+        
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 

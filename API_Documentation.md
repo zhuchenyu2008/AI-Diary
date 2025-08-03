@@ -107,13 +107,16 @@ POST /diary/entries
 
 ### 获取日记条目列表
 ```
-GET /diary/entries?page=1&per_page=20&date=2025-07-30
+GET /diary/entries?page=1&per_page=20&date=2025-07-30&view=history
 ```
 
 **查询参数**:
 - `page`: 页码 (默认: 1)
 - `per_page`: 每页条目数 (默认: 20)
 - `date`: 日期过滤 (格式: YYYY-MM-DD)
+- `view`: 视图模式 (可选值: `history`)
+  - 不设置或设置为其他值：时间线视图，排除每日总结
+  - `history`：历史日记视图，包含每日总结和普通条目
 
 **响应**:
 ```json
@@ -121,21 +124,37 @@ GET /diary/entries?page=1&per_page=20&date=2025-07-30
   "success": true,
   "entries": [
     {
-      "id": 1,
-      "text_content": "今天天气很好",
-      "image_path": "uploads/image.jpg",
-      "ai_analysis": "用户在享受美好的天气",
-      "timestamp": "2025-07-30T16:45:00"
+      "id": 66,
+      "text_content": null,
+      "image_path": null,
+      "ai_analysis": "亲爱的朋友，你好呀！今天看到你留下了这么多有趣的记录...",
+      "is_daily_summary": true,
+      "timestamp": "2025-08-03T23:59:59",
+      "created_at": "2025-08-03T23:59:59"
+    },
+    {
+      "id": 58,
+      "text_content": "123",
+      "image_path": null,
+      "ai_analysis": "你好呀！我看到你发来了一个数字\"123\"...",
+      "is_daily_summary": false,
+      "timestamp": "2025-08-03T13:11:43",
+      "created_at": "2025-08-03T13:11:44"
     }
   ],
   "pagination": {
     "page": 1,
     "per_page": 20,
-    "total": 1,
+    "total": 2,
     "pages": 1
   }
 }
 ```
+
+**字段说明**:
+- `is_daily_summary`: 布尔值，标识是否为每日总结
+- `text_content`: 普通条目有用户输入内容，每日总结为null
+- `ai_analysis`: 普通条目为AI分析，每日总结为完整的日记汇总
 
 ### 获取单个日记条目
 ```
@@ -168,6 +187,40 @@ DELETE /diary/entries/{entry_id}
   "message": "日记条目删除成功"
 }
 ```
+
+### 手动生成每日总结
+```
+POST /diary/generate-summary
+```
+
+**请求体**:
+```json
+{
+  "date": "2025-08-03"
+}
+```
+
+**响应**:
+```json
+{
+  "success": true,
+  "message": "每日总结生成成功",
+  "summary": {
+    "id": 66,
+    "text_content": null,
+    "ai_analysis": "亲爱的朋友，你好呀！今天看到你留下了这么多有趣的记录...",
+    "is_daily_summary": true,
+    "timestamp": "2025-08-03T23:59:59",
+    "created_at": "2025-08-03T23:59:59"
+  }
+}
+```
+
+**说明**:
+- 如果不提供date参数，默认生成当日总结
+- 如果该日期已有总结，将返回错误信息
+- 生成的总结会自动保存到数据库
+- 总结内容包含当日活动、情绪分析和生活感悟
 
 ### 获取AI分析状态
 ```
