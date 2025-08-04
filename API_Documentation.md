@@ -10,6 +10,7 @@ AI日记是一个智能日记应用，提供了完整的RESTful API接口，支�
 - **认证方式**: Session-based authentication
 - **数据格式**: JSON
 - **字符编码**: UTF-8
+- **时间基准**: 所有时间戳均采用北京时间 (UTC+8)
 
 ## 认证接口 (Auth)
 
@@ -194,6 +195,7 @@ DELETE /diary/entries/{entry_id}
 ```
 
 ### 手动生成每日总结
+系统会在每天北京时间0点自动生成前一天的总结，以下接口可用于手动触发或重新生成：
 ```
 POST /diary/generate-summary
 ```
@@ -630,6 +632,6 @@ setInterval(checkAnalysisStatus, 2000);
 ## 版本信息
 
 - **API版本**: v1.0
-- **最后更新**: 2025-07-30
+- **最后更新**: 2025-08-04
 - **维护者**: Manus AI
 
