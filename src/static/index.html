@@ -1240,9 +1240,15 @@
         }
 
         // API Functions
-        async function fetchUserInfo() {
+        async function fetchUserInfo(timeout = 5000) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), timeout);
             try {
-                const response = await fetch('/api/auth/check', { credentials: 'include' });
+                const response = await fetch('/api/auth/check', {
+                    credentials: 'include',
+                    signal: controller.signal
+                });
+                clearTimeout(timer);
                 if (response.ok) {
                     const data = await response.json();
                     if (data.authenticated) {
@@ -1252,7 +1258,11 @@
                 }
                 return false;
             } catch (error) {
-                console.error('检查认证状态失败:', error);
+                if (error.name === 'AbortError') {
+                    console.error('检查认证状态超时');
+                } else {
+                    console.error('检查认证状态失败:', error);
+                }
                 return false;
             }
         }
@@ -1919,89 +1929,51 @@
         window.deleteEntry = deleteEntry;
 
         // Initialize App
-        document.addEventListener('DOMContentLoaded', async () => {
+        document.addEventListener('DOMContentLoaded', () => {
             initTheme();
-            
+
             // Start countdown timer
             updateCountdown();
             setInterval(updateCountdown, 1000);
-            
-            // Check authentication
-            const isAuthenticated = await fetchUserInfo();
-            appState.loading = false;
-            
-            hideElement('loading-screen');
-            
-            if (!isAuthenticated) {
-                showElement('login-form');
-                
-                // Login form handlers
-                const passwordInput = $('password-input');
-                const loginBtn = $('login-btn');
-                const loginError = $('login-error');
-                
-                const handleLogin = async () => {
-                    const password = passwordInput.value.trim();
-                    if (!password) {
-                        loginError.textContent = '请输入密码';
-                        showElement('login-error');
-                        return;
-                    }
-                    
-                    loginBtn.disabled = true;
-                    loginBtn.innerHTML = '<div class="spinner" style="width: 1rem; height: 1rem;"></div> 登录中...';
-                    
-                    const result = await login(password);
-                    
-                    if (result.success) {
-                        hideElement('login-form');
-                        showElement('main-app');
-                        await fetchEntries();
-                    } else {
-                        loginError.textContent = result.message;
-                        showElement('login-error');
-                        loginBtn.disabled = false;
-                        loginBtn.textContent = '登录';
-                    }
-                };
-                
-                loginBtn.onclick = handleLogin;
-                passwordInput.onkeypress = (e) => e.key === 'Enter' && handleLogin();
-                
-            } else {
+
+            const passwordInput = $('password-input');
+            const loginBtn = $('login-btn');
+            const loginError = $('login-error');
+
+            const initializeMainApp = async () => {
                 showElement('main-app');
                 await fetchEntries();
                 renderMoodFilters();
-                
+
                 // Main app event listeners
                 $$('.tab-btn').forEach(btn => {
                     btn.onclick = () => switchTab(btn.dataset.tab);
                 });
-                
+
                 $('entry-textarea').oninput = (e) => {
                     appState.newEntryText = e.target.value;
                     updateCharCount();
                 };
-                
+
                 $('submit-entry-btn').onclick = async () => {
                     if (appState.isSubmitting || !appState.newEntryText.trim()) return;
-                    
+
                     appState.isSubmitting = true;
                     updateSubmitButton();
-                    
+
                     const success = await submitEntry(appState.newEntryText);
                     appState.isSubmitting = false;
                     updateSubmitButton();
                 };
-                
+
                 $('camera-btn').onclick = handleCameraCapture;
                 $('upload-btn').onclick = handleFileSelect;
-                
+
                 $('search-input').oninput = (e) => {
                     appState.searchQuery = e.target.value;
                     renderEntries();
                 };
-                
+
                 $('filter-toggle').onclick = () => {
                     appState.showFilters = !appState.showFilters;
                     if (appState.showFilters) {
@@ -2012,30 +1984,70 @@
                         $('filter-toggle').style.backgroundColor = '';
                     }
                 };
-                
+
                 $('show-mood-toggle').onchange = (e) => {
                     appState.showMoodInHistory = e.target.checked;
                     renderHistory();
                 };
-                
+
                 $('manual-summary-btn').onclick = async () => {
                     if (appState.isGeneratingSummary) return;
-                    
+
                     appState.isGeneratingSummary = true;
                     $('manual-summary-btn').innerHTML = '<div class="spinner" style="width: 1rem; height: 1rem;"></div> 生成中...';
                     $('manual-summary-btn').disabled = true;
-                    
+
                     await generateDailySummary();
-                    
+
                     appState.isGeneratingSummary = false;
                     $('manual-summary-btn').innerHTML = '现在总结';
                     $('manual-summary-btn').disabled = false;
                 };
-                
+
                 $('logout-btn').onclick = logout;
-                
+
                 updateCharCount();
-            }
+            };
+
+            const handleLogin = async () => {
+                const password = passwordInput.value.trim();
+                if (!password) {
+                    loginError.textContent = '请输入密码';
+                    showElement('login-error');
+                    return;
+                }
+
+                loginBtn.disabled = true;
+                loginBtn.innerHTML = '<div class="spinner" style="width: 1rem; height: 1rem;"></div> 登录中...';
+
+                const result = await login(password);
+
+                if (result.success) {
+                    hideElement('login-form');
+                    await initializeMainApp();
+                } else {
+                    loginError.textContent = result.message;
+                    showElement('login-error');
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = '登录';
+                }
+            };
+
+            loginBtn.onclick = handleLogin;
+            passwordInput.onkeypress = (e) => e.key === 'Enter' && handleLogin();
+
+            fetchUserInfo().then(async (isAuthenticated) => {
+                appState.loading = false;
+
+                hideElement('loading-screen');
+
+                if (!isAuthenticated) {
+                    showElement('login-form');
+                } else {
+                    hideElement('login-form');
+                    await initializeMainApp();
+                }
+            });
         });
     </script>
 </body>
