@@ -14,7 +14,8 @@ from src.routes.config import config_bp
 from src.routes.admin import admin_bp
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
-app.config['SECRET_KEY'] = 'diary_app_secret_key_2025'
+# 从环境变量加载密钥，防止秘钥泄露。提供默认值以便开发环境运行。
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'diary_app_secret_key_2025')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
 # 启用CORS

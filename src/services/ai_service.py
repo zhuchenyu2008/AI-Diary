@@ -24,28 +24,42 @@ class AIService:
             return False, f"连接异常: {str(e)}"
     
     def _load_config(self):
-        """加载AI配置"""
+        """加载AI配置。
+
+        当配置不完整或缺少API密钥时，主动清除已有的客户端实例，防止沿用过期配置。
+        """
         try:
             from src.models.diary import Config
-            
+
             api_url_config = Config.query.filter_by(key='ai_api_url').first()
             api_key_config = Config.query.filter_by(key='ai_api_key').first()
             model_config = Config.query.filter_by(key='ai_model').first()
-            
-            if api_url_config and api_key_config and model_config:
+
+            # 判断配置是否完整且包含有效的API密钥
+            if api_url_config and api_key_config and model_config and api_key_config.value:
                 self.api_url = api_url_config.value
                 self.api_key = api_key_config.value
                 self.model = model_config.value
-                
+
                 # 初始化OpenAI客户端
-                if self.api_key:
-                    self.client = openai.OpenAI(
-                        api_key=self.api_key,
-                        base_url=self.api_url
-                    )
+                self.client = openai.OpenAI(
+                    api_key=self.api_key,
+                    base_url=self.api_url
+                )
             else:
-                print("AI配置不完整，请检查配置")
+                # 配置不完整或缺少密钥，清除已有实例并打印警告
+                if any([self.client, self.api_url, self.api_key, self.model]):
+                    print("AI配置不完整或缺失，已清除旧的AI客户端配置")
+                self.client = None
+                self.api_url = None
+                self.api_key = None
+                self.model = None
         except Exception as e:
+            # 如果加载配置失败，也要清除配置，避免复用旧实例
+            self.client = None
+            self.api_url = None
+            self.api_key = None
+            self.model = None
             print(f"加载AI配置失败: {e}")
     
     def _encode_image(self, image_path):

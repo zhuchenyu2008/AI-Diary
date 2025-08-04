@@ -1,15 +1,20 @@
 from flask import Blueprint, jsonify, request, session
 from src.models.diary import Config, db
+from functools import wraps
 
 config_bp = Blueprint('config', __name__)
 
 def require_auth(f):
-    """认证装饰器"""
+    """认证装饰器，要求用户已登录。
+
+    使用functools.wraps保留原函数的元数据，便于调试与文档生成。
+    """
+    @wraps(f)
     def decorated_function(*args, **kwargs):
         if not session.get('authenticated', False):
             return jsonify({'success': False, 'message': '未认证'}), 401
         return f(*args, **kwargs)
-    decorated_function.__name__ = f.__name__
+
     return decorated_function
 
 @config_bp.route('/configs', methods=['GET'])

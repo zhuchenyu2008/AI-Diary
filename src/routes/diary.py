@@ -8,6 +8,7 @@ import logging
 import os
 import uuid
 import threading
+from functools import wraps
 
 logger = logging.getLogger(__name__)
 
@@ -21,12 +22,13 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def require_auth(f):
-    """认证装饰器"""
+    """认证装饰器，要求用户已登录。使用wraps保留元数据。"""
+    @wraps(f)
     def decorated_function(*args, **kwargs):
         if not session.get('authenticated', False):
             return jsonify({'success': False, 'message': '未认证'}), 401
         return f(*args, **kwargs)
-    decorated_function.__name__ = f.__name__
+
     return decorated_function
 
 def analyze_entry_async(entry_id, text_content, image_path):
@@ -166,7 +168,8 @@ def generate_daily_summary():
         
         print(f"生成总结文本: {summary_text}")
         
-        if summary_text and summary_text.strip() and "失败" not in summary_text:
+        # 仅当生成的总结不为空且不包含失败标志时才视为成功
+        if summary_text and summary_text.strip() and "失败" not in summary_text and summary_text != "总结内容为空":
             return jsonify({
                 'success': True, 
                 'message': '每日总结生成成功',
