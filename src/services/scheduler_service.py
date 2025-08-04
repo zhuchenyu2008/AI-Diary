@@ -4,6 +4,7 @@ from datetime import date, timedelta
 from src.models.diary import DailySummary, db, DiaryEntry
 from src.services.ai_service import ai_service
 from src.services.telegram_service import telegram_service
+from src.services.time_service import time_service
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -38,7 +39,8 @@ class SchedulerService:
     def _generate_daily_summary_job(self):
         """定时任务调用的函数"""
         with self.app.app_context():
-            yesterday = date.today() - timedelta(days=1)
+            today_beijing = time_service.get_beijing_time().date()
+            yesterday = today_beijing - timedelta(days=1)
             self._generate_daily_summary(yesterday)
 
     def _generate_daily_summary(self, target_date, force_update=False):
@@ -78,7 +80,6 @@ class SchedulerService:
                 db.session.add(daily_summary)
 
             # 为总结条目设置正确的日期时间
-            from src.services.time_service import time_service
             # 使用当前时间的北京时区时间，但设置为目标日期的23:59:59
             from datetime import datetime
             summary_timestamp = datetime(
