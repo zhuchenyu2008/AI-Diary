@@ -285,6 +285,24 @@ AI-Diary/
 
 > 提示：首次运行会在挂载目录下生成 `app.db` 数据库文件，请妥善备份。
 
+#### 方式三：Docker Compose部署
+如果你的环境中已经安装了 Docker Compose，可以直接使用仓库提供的 `docker-compose.yml` 一键启动：
+
+1. **启动服务**
+   ```bash
+   docker-compose up -d
+   ```
+
+   - 服务默认运行在 `http://localhost:5000`
+   - `./src/database` 目录会挂载到容器中以持久化 SQLite 数据
+
+2. **停止服务**
+   ```bash
+   docker-compose down
+   ```
+
+   > 如需自定义 `SECRET_KEY` 等环境变量，可在 `docker-compose.yml` 中编辑 `environment` 配置或使用 `.env` 文件覆盖。
+
 ### 数据库备份
 SQLite数据库文件位于 `src/database/app.db`，建议定期备份。
 
