@@ -119,6 +119,19 @@ docker-compose up -d
     - **历史日记**: 回顾过去的所有日记，每日总结会以金色背景高亮显示。
 4.  **设置**: 在设置页面配置AI、Telegram以及修改密码。
 
+## 致谢
+
+- 前端UI开发提示词工程：https://github.com/KuekHaoYang/AI-Prompt-Protocols
+- manus 10k+积分
+- code-X
+- jules
+- 硅基流动：moonshotai/Kimi-K2-Instruct：200M+tokens
+- Any Router：claude-sonnet-4-20250514：16M+tokens
+- Your API: claude-sonnet-4-20250514，claude-opus-4-20250514：344k+tokens
+- ChatGPT-4o；ChatGPT-o3
+- 我的朋友们：JiaHao，汤圆不圆
+- 酷狗音乐
+
 ## ❓ 常见问题 (FAQ)
 
 **Q: 看不到每日总结内容？**
@@ -227,18 +240,6 @@ AI-Diary/
 ├── test_results.md               # 测试结果
 └── README.md                     # 项目说明
 ```
-
-### 致谢
-- 前端UI开发提示词工程：https://github.com/KuekHaoYang/AI-Prompt-Protocols
-- manus 10k+积分
-- code-X
-- jules
-- 硅基流动：moonshotai/Kimi-K2-Instruct：200M+tokens
-- Any Router：claude-sonnet-4-20250514：16M+tokens
-- Your API: claude-sonnet-4-20250514，claude-opus-4-20250514：344k+tokens
-- ChatGPT-4o；ChatGPT-o3
-- 我的朋友们：JiaHao，汤圆不圆
-- 酷狗音乐
 
 
 ### 未来路线
