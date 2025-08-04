@@ -1,6 +1,6 @@
 # AI-Diary - 智能日记应用
 
-一个新型的日记应用，它使用AI大模型来理解您的生活记录。本项目采用现代化的Liquid Glass设计系统，提供卓越的用户体验。
+一个新型的日记应用，它使用AI大模型来理解您的生活记录。采用Liquid Glass设计。
 
 ## ✨ 功能特点
 
@@ -159,6 +159,7 @@ A: 请确保浏览器已授权摄像头权限，并建议使用 `https://` 协�
 - 🧹 清理调试日志输出，提升应用性能
 - 📚 完善README文档，详细说明每日总结功能使用方法
 - 🔧 优化前端数据获取逻辑，确保正确传递view参数
+- 去除mcp功能
 
 ### v2.0.1 (2025-07-30)
 - 🐛 修复移动端输入框布局问题，防止字符计数挤压发送按钮
@@ -227,13 +228,32 @@ AI-Diary/
 └── README.md                     # 项目说明
 ```
 
+### 致谢
+- 前端UI开发提示词工程：https://github.com/KuekHaoYang/AI-Prompt-Protocols
+- manus 10k+积分
+- code-X
+- jules
+- 硅基流动：moonshotai/Kimi-K2-Instruct：200M+tokens
+- Any Router：claude-sonnet-4-20250514：16M+tokens
+- Your API: claude-sonnet-4-20250514，claude-opus-4-20250514：344k+tokens
+- ChatGPT-4o；ChatGPT-o3
+- 我的朋友们：JiaHao，汤圆不圆
+- 酷狗音乐
+
+
+### 未来路线
+- 安卓APP开发
+- 使AI通过上下文串联理解
+- 更多的推送支持
+
+
 ### 开发规范
 - 后端代码遵循 PEP 8 规范。
 - 提交信息请遵循约定式提交 (Conventional Commits) 格式。
 
 ### 贡献指南
 
-我们欢迎任何形式的贡献！无论是Bug修复、功能开发还是文档改进。
+欢迎任何形式的贡献！无论是Bug修复、功能开发还是文档改进。
 
 1.  Fork 本项目
 2.  创建您的功能分支 (`git checkout -b feature/AmazingFeature`)
@@ -245,7 +265,4 @@ AI-Diary/
 
 本项目采用 MIT 许可证。
 
-## 🙏 致谢
 
-- 感谢 OpenAI 提供的强大AI能力。
-- 感谢所有为本项目做出贡献的开发者和用户。
