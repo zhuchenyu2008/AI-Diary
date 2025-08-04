@@ -119,7 +119,7 @@ docker-compose up -d
     - **历史日记**: 回顾过去的所有日记，每日总结会以金色背景高亮显示。
 4.  **设置**: 在设置页面配置AI、Telegram以及修改密码。
 
-## 致谢
+## 致谢名单
 
 - 前端UI开发提示词工程：https://github.com/KuekHaoYang/AI-Prompt-Protocols
 - manus 10k+积分
