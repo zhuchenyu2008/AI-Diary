@@ -256,17 +256,34 @@ AI-Diary/
 2. 使用进程管理器（PM2、Supervisor）
 
 #### 方式二：Docker部署
-```dockerfile
-# Dockerfile示例
-FROM python:3.9-slim
+项目提供了官方的 `Dockerfile`，可以在任何支持 Docker 的环境中快速部署。
 
-WORKDIR /app
-COPY ./ ./
-RUN pip install -r requirements.txt
+1. **构建镜像**
+   ```bash
+   docker build -t ai-diary .
+   ```
 
-EXPOSE 5000
-CMD ["python", "src/main.py"]
-```
+2. **运行容器**
+   ```bash
+   docker run -d \
+     --name ai-diary \
+     -p 5000:5000 \
+     -v $(pwd)/data:/app/src/database \
+     ai-diary
+   ```
+
+   - `-v $(pwd)/data:/app/src/database`：将数据库目录挂载到宿主机以持久化数据
+   - 启动后可在网页设置页配置 AI API 等密钥，无需在运行前提供环境变量
+
+3. **访问服务**
+   在浏览器中访问 `http://localhost:5000` 即可使用应用。
+
+4. **停止与删除**
+   ```bash
+   docker stop ai-diary && docker rm ai-diary
+   ```
+
+> 提示：首次运行会在挂载目录下生成 `app.db` 数据库文件，请妥善备份。
 
 ### 数据库备份
 SQLite数据库文件位于 `src/database/app.db`，建议定期备份。
