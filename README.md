@@ -72,10 +72,8 @@
 - **SQLite**: 轻量级数据库
 - **OpenAI API**: AI大模型集成
 - **APScheduler**: 定时任务调度
-- **MCP支持**: Model Context Protocol集成
 
 ### 部署架构
-- **🎯 前后端一体化**: 单体应用设计，简化部署和维护
 - **📁 静态文件服务**: 优化的静态资源管理和缓存策略
 - **🔗 RESTful API**: 标准化的API接口设计
 - **🐳 Docker支持**: 容器化部署，环境一致性保证
@@ -140,7 +138,6 @@ python src/main.py
 
 #### 3. 访问应用
 - 在浏览器访问 http://localhost:5000
-- 静态文件位于 src/static/，无需单独构建前端
 
 ### 初始配置
 
@@ -243,30 +240,6 @@ AI-Diary/
 | telegram_chat_id | 聊天ID | 空（需要配置） |
 | telegram_enabled | 是否启用推送 | false |
 
-## 部署指南
-
-### 开发环境部署
-1. 按照"快速开始"步骤设置环境
-2. 后端运行在 http://localhost:5000
-
-### 生产环境部署
-
-#### 方式一：传统部署
-1. 配置反向代理（Nginx）
-2. 使用进程管理器（PM2、Supervisor）
-
-#### 方式二：Docker部署
-```dockerfile
-# Dockerfile示例
-FROM python:3.9-slim
-
-WORKDIR /app
-COPY ./ ./
-RUN pip install -r requirements.txt
-
-EXPOSE 5000
-CMD ["python", "src/main.py"]
-```
 
 ### 数据库备份
 SQLite数据库文件位于 `src/database/app.db`，建议定期备份。
@@ -310,13 +283,6 @@ SQLite数据库文件位于 `src/database/app.db`，建议定期备份。
 - **拍照按钮**: 直接调用摄像头拍照
 - **上传图片按钮**: 从相册选择图片
 - 自动申请摄像头权限
-
-#### MCP配置
-1. 进入设置页面
-2. 点击"管理 MCP 服务器"
-3. 添加自定义服务器或启用内置模板
-4. 配置服务器参数（URL、认证等）
-5. AI将自动获取相关上下文信息
 
 #### 移动端使用
 - 界面自动适配移动设备
@@ -456,9 +422,6 @@ A: 备份 `src/database/app.db` 文件即可。
 - ⚡ 性能优化
 - 🔧 配置和工具改进
 
-## 许可证
-
-本项目采用 MIT 许可证。详情请参阅 LICENSE 文件。
 
 ## 致谢
 
@@ -471,5 +434,5 @@ A: 备份 `src/database/app.db` 文件即可。
 
 ---
 
-感谢使用AI日记！希望这个应用能帮助您更好地记录和回顾生活的美好时光。如有任何问题或建议，欢迎通过GitHub Issues联系我们。
+感谢使用AI日记！希望这个应用能帮助您更好地记录和回顾生活的美好时光。如有任何问题或建议，欢迎联系我。
 
