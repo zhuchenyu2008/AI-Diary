@@ -8,21 +8,34 @@ class TelegramService:
         self.enabled = False
     
     def _load_config(self):
-        """加载Telegram配置"""
+        """加载Telegram配置。
+
+        如果配置不完整，则重置已加载的配置，避免残留旧值导致误判。
+        """
         try:
             from src.models.diary import Config
-            
+
             token_config = Config.query.filter_by(key='telegram_bot_token').first()
             chat_id_config = Config.query.filter_by(key='telegram_chat_id').first()
             enabled_config = Config.query.filter_by(key='telegram_enabled').first()
-            
-            if token_config and chat_id_config:
+
+            # 如果token和chat_id均存在，则使用它们；否则清除所有配置
+            if token_config and chat_id_config and token_config.value and chat_id_config.value:
                 self.bot_token = token_config.value.strip() if token_config.value else None
                 self.chat_id = chat_id_config.value.strip() if chat_id_config.value else None
                 self.enabled = enabled_config.value.lower() == 'true' if enabled_config and enabled_config.value else False
             else:
-                print("Telegram配置不完整")
+                # 配置不完整，清除旧配置
+                if any([self.bot_token, self.chat_id, self.enabled]):
+                    print("Telegram配置不完整，已重置旧值")
+                self.bot_token = None
+                self.chat_id = None
+                self.enabled = False
         except Exception as e:
+            # 出现异常时也清除配置
+            self.bot_token = None
+            self.chat_id = None
+            self.enabled = False
             print(f"加载Telegram配置失败: {e}")
     
     def send_message(self, text):

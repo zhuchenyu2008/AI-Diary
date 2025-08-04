@@ -3,7 +3,8 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 class TimeService:
-    API_URL = "http://worldtimeapi.org/api/timezone/Asia/Shanghai"
+    # 使用 HTTPS 协议访问时间服务，避免中间人攻击
+    API_URL = "https://worldtimeapi.org/api/timezone/Asia/Shanghai"
 
     def get_beijing_time(self):
         """Fetch current Beijing time from the network.

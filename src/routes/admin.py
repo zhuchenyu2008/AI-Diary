@@ -5,16 +5,18 @@ from src.services.telegram_service import telegram_service
 from src.services.scheduler_service import scheduler_service
 from datetime import datetime, date
 from src.services.time_service import time_service
+from functools import wraps
 
 admin_bp = Blueprint('admin', __name__)
 
 def require_auth(f):
-    """认证装饰器"""
+    """认证装饰器，要求用户已登录。使用wraps保留元数据。"""
+    @wraps(f)
     def decorated_function(*args, **kwargs):
         if not session.get('authenticated', False):
             return jsonify({'success': False, 'message': '未认证'}), 401
         return f(*args, **kwargs)
-    decorated_function.__name__ = f.__name__
+
     return decorated_function
 
 @admin_bp.route('/test-ai', methods=['POST'])
