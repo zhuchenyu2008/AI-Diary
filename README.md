@@ -241,10 +241,13 @@ AI-Diary/
 └── README.md                     # 项目说明
 ```
 
+<img width="7840" height="7050" alt="AI-Diary_architecture" src="https://github.com/user-attachments/assets/e68fdb88-22b2-4725-ad15-75043ffbb989" />
+
+
 
 ### 未来路线
 - 安卓APP开发
-- 使AI通过上下文串联理解
+- 使单次记录AI通过上下文串联理解
 - 更多的推送支持
 
 
@@ -264,6 +267,6 @@ AI-Diary/
 
 ## 📄 许可证
 
-本项目采用 MIT 许可证。
+本项目采用 GPL-3.0 license 许可证。
 
 
