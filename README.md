@@ -99,8 +99,8 @@ docker-compose up -d
 | `ai_api_url` | AI API地址 | `https://api.openai.com/v1` |
 | `ai_api_key` | 您的AI API密钥 | *需要配置* |
 | `ai_model` | AI模型名称 | `gpt-3.5-turbo` |
-| `ai_prompt_template` | AI分析提示词 | 内置默认模板 |
-| `ai_summary_prompt` | 每日汇总提示词 | 内置默认模板 |
+| `ai_prompt_template` | AI分析提示词 | 提示词模板在这里：https://github.com/zhuchenyu2008/AI-Diary/blob/26df7ea6db8a4d0eb3b2622d313d40f7e2b96eaf/AI%20prompt%20word%20example.md |
+| `ai_summary_prompt` | 每日汇总提示词 | 提示词模板在这里：https://github.com/zhuchenyu2008/AI-Diary/blob/26df7ea6db8a4d0eb3b2622d313d40f7e2b96eaf/AI%20prompt%20word%20example.md |
 
 ### Telegram 配置 (可选)
 
