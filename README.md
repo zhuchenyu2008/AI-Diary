@@ -205,40 +205,43 @@ A: 请确保浏览器已授权摄像头权限，并建议使用 `https://` 协�
 ### 项目结构
 ```
 AI-Diary/
-├── src/                          # 应用源码
-│   ├── main.py                   # 应用入口
-│   ├── models/                   # 数据模型
-│   │   ├── __init__.py
-│   │   ├── diary.py              # 日记模型
-│   │   ├── config.py             # 配置模型
-│   │   ├── user.py               # 用户模型
-│   │   └── mcp.py                # MCP模型
-│   ├── routes/                   # API路由
-│   │   ├── __init__.py
-│   │   ├── auth.py               # 认证路由
-│   │   ├── diary.py              # 日记路由
-│   │   ├── config.py             # 配置路由
-│   │   ├── admin.py              # 管理路由
-│   │   ├── user.py               # 用户路由
-│   │   └── mcp.py                # MCP路由
-│   ├── services/                 # 业务服务
-│   │   ├── __init__.py
-│   │   ├── ai_service.py         # AI服务
-│   │   ├── telegram_service.py   # Telegram服务
-│   │   └── mcp_service.py        # MCP服务
-│   ├── static/                   # 静态文件
-│   │   ├── index.html            # 主页面
-│   │   ├── config.html           # 设置页面
-│   │   ├── mcp.html              # MCP配置页面
-│   │   └── assets/               # 静态资源
-│   │       ├── index-DUaNkWBt.js # 前端JavaScript
-│   │       └── index-oWMHbS2h.css # 样式文件
-│   └── database/                 # 数据库文件
-│       └── app.db                # SQLite数据库
-├── requirements.txt              # Python依赖
-├── API_Documentation.md          # API文档
-├── test_results.md               # 测试结果
-└── README.md                     # 项目说明
+├── AI prompt word example.md     # AI 提示词示例
+├── API_Documentation.md          # API 文档
+├── Dockerfile                    # Docker 构建文件
+├── LICENSE                       # 许可证
+├── README.md                     # 项目说明
+├── docker-compose.yml            # Docker Compose 配置
+├── requirements.txt              # Python 依赖
+├── test_app.py                   # 测试脚本
+└── src/                          # 应用源码
+    ├── __init__.py               # 包初始化
+    ├── main.py                   # 应用入口
+    ├── models/                   # 数据模型
+    │   ├── diary.py              # 日记模型
+    │   └── user.py               # 用户模型
+    ├── routes/                   # API 路由
+    │   ├── admin.py              # 管理路由
+    │   ├── auth.py               # 认证路由
+    │   ├── config.py             # 配置路由
+    │   ├── diary.py              # 日记路由
+    │   └── user.py               # 用户路由
+    ├── services/                 # 业务服务
+    │   ├── ai_service.py         # AI 服务
+    │   ├── scheduler_service.py  # 调度服务
+    │   ├── telegram_service.py   # Telegram 服务
+    │   └── time_service.py       # 时间工具
+    └── static/                   # 静态文件
+        ├── ai_monitor_simple.js  # AI 监控脚本
+        ├── config.html           # 设置页面
+        ├── favicon.ico           # 网站图标
+        ├── index.html            # 主页面
+        ├── index_liquid_glass.html # Liquid Glass 演示页面
+        ├── mobile-bottom-fix.css # 移动端底部修复样式
+        ├── assets/               # 打包资源
+        │   ├── index-DUaNkWBt.js # 前端 JavaScript
+        │   └── index-oWMHbS2h.css # 样式文件
+        └── js/                   # 自定义 JS 模块
+            └── app.js            # 应用脚本
 ```
 
 <img width="7840" height="7050" alt="AI-Diary_architecture" src="https://github.com/user-attachments/assets/e68fdb88-22b2-4725-ad15-75043ffbb989" />
