@@ -125,7 +125,7 @@ docker-compose up -d
 - manus 10k+积分
 - code-X
 - jules
-- 硅基流动：moonshotai/Kimi-K2-Instruct：200M+tokens
+- 硅基流动：moonshotai/Kimi-K2-Instruct：1000M+tokens
 - Any Router：claude-sonnet-4-20250514：16M+tokens
 - Your API: claude-sonnet-4-20250514，claude-opus-4-20250514：344k+tokens
 - ChatGPT-4o；ChatGPT-o3
