@@ -58,7 +58,7 @@ class Config(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     key = db.Column(db.String(100), unique=True, nullable=False)
     value = db.Column(db.Text)
-    description = db.Column(db.Text)
+    description = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, default=lambda: time_service.get_beijing_time())
     updated_at = db.Column(db.DateTime, default=lambda: time_service.get_beijing_time(), onupdate=lambda: time_service.get_beijing_time())
     
