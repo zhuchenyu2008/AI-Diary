@@ -226,6 +226,32 @@ def get_memory_stats():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@mcp_bp.route('/memories/clear', methods=['DELETE'])
+@require_auth
+def clear_all_memories():
+    """清空所有用户记忆"""
+    try:
+        # 使用认证记录的ID作为user_id
+        from src.models.diary import Auth
+        auth_record = Auth.query.first()
+        if not auth_record:
+            return jsonify({'error': '未找到用户'}), 404
+
+        user_id = auth_record.id
+        deleted_count = UserMemory.query.filter(
+            UserMemory.user_id == user_id
+        ).delete(synchronize_session=False)
+
+        db.session.commit()
+
+        return jsonify({
+            'message': f'成功清空 {deleted_count} 条记忆',
+            'deleted_count': deleted_count
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
 @mcp_bp.route('/memories/<int:memory_id>', methods=['DELETE'])
 @require_auth
 def delete_memory(memory_id):
