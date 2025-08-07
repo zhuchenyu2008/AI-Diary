@@ -9,6 +9,7 @@
 - **实时AI分析**: 在您记录后，AI会立即分析并展示其理解，让您与AI实时互动。
 - **每日智能总结**: 每天零点，AI会自动为您生成一份温暖的、个性化的每日总结。
 - **时间线与历史视图**: 在时间线视图中查看当天的即时记录，在历史视图中回顾包含每日总结的完整日记。
+- **MCP记忆功能**: 内置Model Context Protocol (MCP)，AI能够学习并记住您的偏好、习惯，提供越来越个性化的分析体验。
 - **多种查看方式**: 支持网页、API及Telegram推送，随时随地回顾您的记忆。
 
 ### 用户体验
@@ -24,6 +25,7 @@
 - **数据库**: SQLite
 - **AI**: OpenAI API, 自定义提示词
 - **调度**: APScheduler
+- **MCP**: Model Context Protocol, 用户记忆管理
 - **部署**: Docker, Docker Compose
 
 ## 🎨 Liquid Glass 设计系统
@@ -99,8 +101,20 @@ docker-compose up -d
 | `ai_api_url` | AI API地址 | `https://api.openai.com/v1` |
 | `ai_api_key` | 您的AI API密钥 | *需要配置* |
 | `ai_model` | AI模型名称 | `gpt-3.5-turbo` |
-| `ai_prompt_template` | AI分析提示词 | 提示词模板在这里：https://github.com/zhuchenyu2008/AI-Diary/blob/26df7ea6db8a4d0eb3b2622d313d40f7e2b96eaf/AI%20prompt%20word%20example.md |
-| `ai_summary_prompt` | 每日汇总提示词 | 提示词模板在这里：https://github.com/zhuchenyu2008/AI-Diary/blob/26df7ea6db8a4d0eb3b2622d313d40f7e2b96eaf/AI%20prompt%20word%20example.md |
+| `ai_prompt_template` | AI分析提示词（已集成MCP记忆功能） | 提示词模板在这里：https://github.com/zhuchenyu2008/AI-Diary/blob/26df7ea6db8a4d0eb3b2622d313d40f7e2b96eaf/AI%20prompt%20word%20example.md |
+| `ai_summary_prompt` | 每日汇总提示词（已集成MCP记忆功能） | 提示词模板在这里：https://github.com/zhuchenyu2008/AI-Diary/blob/26df7ea6db8a4d0eb3b2622d313d40f7e2b96eaf/AI%20prompt%20word%20example.md |
+
+### MCP 配置
+
+MCP (Model Context Protocol) 功能为AI提供了长期记忆能力，让AI能够学习并记住您的偏好、习惯，提供个性化的分析体验。
+
+| 功能 | 说明 |
+|---|---|
+| **内置记忆服务器** | 系统自动配置usermcp服务器，无需手动配置 |
+| **自动学习** | AI在分析日记时会自动提取并记住有价值的个人信息 |
+| **记忆分类** | 支持偏好(preference)、习惯(habit)、事实(fact)、情感(emotion)、经历(experience)等类型 |
+| **智能运用** | AI在后续分析中会自然地运用已学习的记忆信息 |
+| **记忆管理** | 在设置页面的MCP标签中查看和管理AI学习的记忆 |
 
 ### Telegram 配置 (可选)
 
@@ -117,7 +131,8 @@ docker-compose up -d
 3.  **查看**:
     - **时间线**: 查看当天的所有记录和AI的实时分析。
     - **历史日记**: 回顾过去的所有日记，每日总结会以金色背景高亮显示。
-4.  **设置**: 在设置页面配置AI、Telegram以及修改密码。
+4.  **设置**: 在设置页面配置AI、Telegram、MCP记忆管理以及修改密码。
+5.  **MCP记忆**: AI会自动学习您的偏好和习惯，随着使用时间增长，分析会变得越来越个性化和贴心。
 
 ## 致谢名单
 
@@ -143,14 +158,27 @@ A: 系统在北京时间每天0点自动生成前一天的总结。您也可以�
 **Q: AI分析或总结失败？**
 A: 请检查AI配置是否正确，确保API密钥有效且账户有足够额度。
 
-**Q: 拍照/上传功能无法使用？**
-A: 请确保浏览器已授权摄像头权限，并建议使用 `https://` 协议访问。
+**Q: MCP记忆功能如何工作？**
+A: AI会在分析您的日记时自动学习并记住重要信息（如食物偏好、兴趣爱好等）。这些记忆会让后续的分析更加个性化和贴心。您可以在设置页面的MCP标签中查看和管理这些记忆。
+
+**Q: AI学习的记忆信息安全吗？**
+A: 所有记忆信息都存储在您本地的数据库中，不会上传到任何外部服务器。您可以随时在MCP设置页面中查看、编辑或删除这些记忆。
 
 ## 📚 API 文档
 
 本项目提供了一套完整的RESTful API。详细信息请参阅 [API_Documentation.md](./API_Documentation.md)。
 
 ## 📝 更新日志
+
+### v4.0.0 MCP记忆功能集成
+- **🧠 MCP记忆系统**: 集成Model Context Protocol，AI具备长期记忆能力
+- **🎯 个性化学习**: AI自动学习用户偏好、习惯，提供个性化分析体验
+- **🔧 内置记忆服务器**: 自动配置usermcp服务器，支持用户记忆管理
+- **📊 记忆分类管理**: 支持偏好、习惯、事实、情感、经历等多种记忆类型
+- **⚡ 智能记忆运用**: AI在日记分析和每日总结中自然运用学习到的记忆
+- **🛠️ MCP设置界面**: 新增MCP配置页面，支持记忆查看、管理和服务器配置
+- **🔐 隐私保护**: 所有记忆数据存储在本地数据库，确保用户隐私安全
+- **📈 优化AI提示词**: 更新默认提示词，引导AI更好地使用记忆工具
 
 ### v3.0.1 项目优化
 - **⏰ 北京时间支持**: 每日总结生成基于北京时间，避免跨时区误差
@@ -172,7 +200,6 @@ A: 请确保浏览器已授权摄像头权限，并建议使用 `https://` 协�
 - 🧹 清理调试日志输出，提升应用性能
 - 📚 完善README文档，详细说明每日总结功能使用方法
 - 🔧 优化前端数据获取逻辑，确保正确传递view参数
-- 去除mcp功能
 
 ### v2.0.1 (2025-07-30)
 - 🐛 修复移动端输入框布局问题，防止字符计数挤压发送按钮
@@ -218,30 +245,38 @@ AI-Diary/
     ├── main.py                   # 应用入口
     ├── models/                   # 数据模型
     │   ├── diary.py              # 日记模型
+    │   ├── mcp.py                # MCP记忆模型
     │   └── user.py               # 用户模型
     ├── routes/                   # API 路由
     │   ├── admin.py              # 管理路由
     │   ├── auth.py               # 认证路由
     │   ├── config.py             # 配置路由
     │   ├── diary.py              # 日记路由
+    │   ├── mcp.py                # MCP API路由
     │   └── user.py               # 用户路由
     ├── services/                 # 业务服务
-    │   ├── ai_service.py         # AI 服务
+    │   ├── ai_service.py         # AI 服务（集成MCP记忆）
     │   ├── scheduler_service.py  # 调度服务
     │   ├── telegram_service.py   # Telegram 服务
     │   └── time_service.py       # 时间工具
+    ├── mcp/                      # MCP功能模块
+    │   ├── __init__.py           # MCP包初始化
+    │   ├── client.py             # MCP客户端管理
+    │   └── usermcp_builtin.py    # 内置用户记忆服务
     └── static/                   # 静态文件
         ├── ai_monitor_simple.js  # AI 监控脚本
         ├── config.html           # 设置页面
         ├── favicon.ico           # 网站图标
         ├── index.html            # 主页面
         ├── index_liquid_glass.html # Liquid Glass 演示页面
+        ├── mcp.html              # MCP设置页面
         ├── mobile-bottom-fix.css # 移动端底部修复样式
         ├── assets/               # 打包资源
         │   ├── index-DUaNkWBt.js # 前端 JavaScript
         │   └── index-oWMHbS2h.css # 样式文件
         └── js/                   # 自定义 JS 模块
-            └── app.js            # 应用脚本
+            ├── app.js            # 应用脚本
+            └── mcp.js            # MCP功能脚本
 ```
 
 <img width="7840" height="7050" alt="AI-Diary_architecture" src="https://github.com/user-attachments/assets/e68fdb88-22b2-4725-ad15-75043ffbb989" />
@@ -251,8 +286,8 @@ AI-Diary/
 ### 未来路线
 - 安卓APP开发
 - 使单次记录AI通过上下文串联理解
-- mcp支持
 - 更多的推送支持
+- MCP服务器扩展和第三方集成
 
 
 ### 开发规范

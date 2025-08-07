@@ -2,7 +2,7 @@
 
 ## 概述
 
-AI日记是一个智能日记应用，提供了完整的RESTful API接口，支持日记条目管理、AI分析、配置管理、用户认证等功能。
+AI日记是一个智能日记应用，提供了完整的RESTful API接口，支持日记条目管理、AI分析、配置管理、用户认证、MCP记忆管理等功能。
 
 ## 基础信息
 
@@ -281,6 +281,319 @@ GET /diary/summaries?date=2025-07-30
       "created_at": "2025-07-30T23:59:00"
     }
   ]
+}
+```
+
+## MCP接口 (Model Context Protocol)
+
+MCP功能为AI提供长期记忆能力，支持用户偏好学习和个性化分析。
+
+### 获取MCP服务器列表
+```
+GET /mcp/servers
+```
+
+**响应**:
+```json
+{
+  "success": true,
+  "servers": [
+    {
+      "id": 1,
+      "name": "usermcp",
+      "command": "builtin",
+      "args": [],
+      "env": {},
+      "enabled": true,
+      "builtin": true,
+      "created_at": "2025-08-06T12:00:00",
+      "updated_at": "2025-08-06T12:00:00"
+    }
+  ]
+}
+```
+
+### 创建MCP服务器
+```
+POST /mcp/servers
+```
+
+**请求体**:
+```json
+{
+  "name": "my-mcp-server",
+  "command": "python",
+  "args": ["-m", "my_mcp_package"],
+  "env": {
+    "API_KEY": "your-api-key"
+  },
+  "enabled": true
+}
+```
+
+**响应**:
+```json
+{
+  "success": true,
+  "message": "MCP服务器创建成功",
+  "server": {
+    "id": 2,
+    "name": "my-mcp-server",
+    "command": "python",
+    "args": ["-m", "my_mcp_package"],
+    "env": {
+      "API_KEY": "your-api-key"
+    },
+    "enabled": true,
+    "builtin": false,
+    "created_at": "2025-08-06T12:30:00",
+    "updated_at": "2025-08-06T12:30:00"
+  }
+}
+```
+
+### 更新MCP服务器
+```
+PUT /mcp/servers/{server_id}
+```
+
+**请求体**:
+```json
+{
+  "name": "updated-server-name",
+  "enabled": false
+}
+```
+
+**响应**:
+```json
+{
+  "success": true,
+  "message": "MCP服务器更新成功",
+  "server": {
+    "id": 2,
+    "name": "updated-server-name",
+    "enabled": false
+  }
+}
+```
+
+### 删除MCP服务器
+```
+DELETE /mcp/servers/{server_id}
+```
+
+**响应**:
+```json
+{
+  "success": true,
+  "message": "MCP服务器删除成功"
+}
+```
+
+### 获取用户记忆列表
+```
+GET /mcp/memories?memory_type=preference&page=1&per_page=20
+```
+
+**查询参数**:
+- `memory_type`: 记忆类型 (可选值: preference, habit, fact, emotion, experience)
+- `page`: 页码 (默认: 1)
+- `per_page`: 每页条目数 (默认: 20)
+
+**响应**:
+```json
+{
+  "success": true,
+  "memories": [
+    {
+      "id": 1,
+      "memory_type": "preference",
+      "key": "food_preference",
+      "value": "喜欢冬阴功汤，偏爱酸辣口味",
+      "confidence": 0.95,
+      "source": "ai_analysis",
+      "tags": ["泰式料理", "汤类", "酸辣"],
+      "created_at": "2025-08-06T10:30:00",
+      "updated_at": "2025-08-06T10:30:00"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "per_page": 20,
+    "total": 1,
+    "pages": 1
+  }
+}
+```
+
+### 创建用户记忆
+```
+POST /mcp/memories
+```
+
+**请求体**:
+```json
+{
+  "memory_type": "preference",
+  "key": "exercise_preference",
+  "value": "喜欢晨跑，偏好户外运动",
+  "confidence": 0.9,
+  "tags": ["运动", "户外", "晨跑"]
+}
+```
+
+**响应**:
+```json
+{
+  "success": true,
+  "message": "用户记忆创建成功",
+  "memory": {
+    "id": 2,
+    "memory_type": "preference",
+    "key": "exercise_preference",
+    "value": "喜欢晨跑，偏好户外运动",
+    "confidence": 0.9,
+    "source": "manual",
+    "tags": ["运动", "户外", "晨跑"],
+    "created_at": "2025-08-06T11:00:00",
+    "updated_at": "2025-08-06T11:00:00"
+  }
+}
+```
+
+### 更新用户记忆
+```
+PUT /mcp/memories/{memory_id}
+```
+
+**请求体**:
+```json
+{
+  "value": "更新后的记忆内容",
+  "confidence": 0.95,
+  "tags": ["新标签1", "新标签2"]
+}
+```
+
+**响应**:
+```json
+{
+  "success": true,
+  "message": "用户记忆更新成功",
+  "memory": {
+    "id": 2,
+    "value": "更新后的记忆内容",
+    "confidence": 0.95,
+    "tags": ["新标签1", "新标签2"]
+  }
+}
+```
+
+### 删除用户记忆
+```
+DELETE /mcp/memories/{memory_id}
+```
+
+**响应**:
+```json
+{
+  "success": true,
+  "message": "用户记忆删除成功"
+}
+```
+
+### 获取记忆统计
+```
+GET /mcp/memories/stats
+```
+
+**响应**:
+```json
+{
+  "success": true,
+  "stats": {
+    "total_count": 25,
+    "type_stats": [
+      {
+        "type": "preference",
+        "count": 10
+      },
+      {
+        "type": "habit",
+        "count": 8
+      },
+      {
+        "type": "fact",
+        "count": 4
+      },
+      {
+        "type": "emotion",
+        "count": 2
+      },
+      {
+        "type": "experience",
+        "count": 1
+      }
+    ],
+    "recent_memories": [
+      {
+        "id": 25,
+        "memory_type": "preference",
+        "key": "music_preference",
+        "value": "喜欢听轻音乐，有助于放松心情",
+        "created_at": "2025-08-06T10:30:00"
+      }
+    ]
+  }
+}
+```
+
+### 获取MCP执行日志
+```
+GET /mcp/logs?page=1&per_page=50
+```
+
+**查询参数**:
+- `page`: 页码 (默认: 1)
+- `per_page`: 每页条目数 (默认: 50)
+
+**响应**:
+```json
+{
+  "success": true,
+  "logs": [
+    {
+      "id": 1,
+      "server_name": "usermcp",
+      "tool_name": "query_user_profile",
+      "user_id": 1,
+      "input_data": {
+        "query": "食物偏好"
+      },
+      "output_data": {
+        "user_id": 1,
+        "query": "食物偏好",
+        "memories": [
+          {
+            "type": "preference",
+            "key": "food_preference",
+            "value": "喜欢冬阴功汤"
+          }
+        ]
+      },
+      "execution_time": 0.045,
+      "status": "success",
+      "error_message": null,
+      "created_at": "2025-08-06T10:15:00"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "per_page": 50,
+    "total": 1,
+    "pages": 1
+  }
 }
 ```
 
@@ -581,11 +894,21 @@ DELETE /users/{user_id}
 | `ai_api_url` | AI API地址 | `https://api.openai.com/v1` |
 | `ai_api_key` | AI API密钥 | 空 |
 | `ai_model` | AI模型名称 | `gpt-3.5-turbo` |
-| `ai_prompt_template` | AI分析提示词模板 | 默认中文提示词 |
-| `ai_summary_prompt` | AI每日汇总提示词 | 默认中文汇总提示词 |
+| `ai_prompt_template` | AI分析提示词模板（已集成MCP记忆功能） | 默认中文提示词 |
+| `ai_summary_prompt` | AI每日汇总提示词（已集成MCP记忆功能） | 默认中文汇总提示词 |
 | `telegram_bot_token` | Telegram机器人Token | 空 |
 | `telegram_chat_id` | Telegram聊天ID | 空 |
 | `telegram_enabled` | 是否启用Telegram推送 | `false` |
+
+## MCP记忆类型说明
+
+| 记忆类型 | 描述 | 示例 |
+|---------|------|------|
+| `preference` | 用户偏好，包括食物、活动、音乐等喜好 | "喜欢冬阴功汤，偏爱酸辣口味" |
+| `habit` | 生活习惯和行为模式 | "习惯早上7点起床，喜欢晨跑" |
+| `fact` | 关于用户的客观事实信息 | "在某某公司工作，居住在北京" |
+| `emotion` | 情感模式和触发点 | "工作压力大时容易焦虑，听音乐可以放松" |
+| `experience` | 重要经历和特殊事件 | "去年夏天的欧洲旅行让人印象深刻" |
 
 ## 使用示例
 
@@ -625,13 +948,66 @@ function checkAnalysisStatus() {
     });
 }
 
-// 每2秒检查一次
-setInterval(checkAnalysisStatus, 2000);
+### MCP记忆管理示例
+
+```javascript
+// 获取用户的所有偏好记忆
+fetch('/api/mcp/memories?memory_type=preference')
+  .then(response => response.json())
+  .then(data => {
+    console.log('用户偏好记忆:', data.memories);
+  });
+
+// 手动添加一个新的记忆
+const newMemory = {
+  memory_type: 'habit',
+  key: 'sleep_schedule',
+  value: '通常在晚上11点睡觉，早上7点起床',
+  confidence: 0.8,
+  tags: ['睡眠', '作息', '健康']
+};
+
+fetch('/api/mcp/memories', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(newMemory)
+})
+.then(response => response.json())
+.then(data => {
+  console.log('记忆添加成功:', data);
+});
+
+// 查看记忆统计信息
+fetch('/api/mcp/memories/stats')
+  .then(response => response.json())
+  .then(data => {
+    console.log('总记忆数:', data.stats.total_count);
+    console.log('各类型统计:', data.stats.type_stats);
+  });
+```
+
+### MCP工具执行监控
+
+```javascript
+// 查看MCP工具的执行日志
+fetch('/api/mcp/logs?page=1&per_page=10')
+  .then(response => response.json())
+  .then(data => {
+    data.logs.forEach(log => {
+      console.log(`${log.created_at}: ${log.tool_name} - ${log.status}`);
+      if (log.status === 'error') {
+        console.error('错误信息:', log.error_message);
+      }
+    });
+  });
 ```
 
 ## 版本信息
 
-- **API版本**: v1.0
-- **最后更新**: 2025-08-04
+- **API版本**: v1.1
+- **最后更新**: 2025-08-06
 - **维护者**: Manus AI
+- **新增功能**: MCP记忆管理、用户偏好学习、AI个性化分析
 

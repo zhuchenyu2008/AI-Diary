@@ -161,11 +161,11 @@
                 </div>
                 <div>
                     <label for="ai_prompt_template" class="block text-sm font-medium text-gray-700">AI 提示词模板</label>
-                    <textarea id="ai_prompt_template" rows="3" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
+                    <textarea id="ai_prompt_template" rows="15" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
                 </div>
                 <div>
                     <label for="ai_summary_prompt" class="block text-sm font-medium text-gray-700">AI 每日总结提示词</label>
-                    <textarea id="ai_summary_prompt" rows="3" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
+                    <textarea id="ai_summary_prompt" rows="10" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
                 </div>
             </div>
 
@@ -182,6 +182,22 @@
                 <div class="flex items-center pt-2">
                     <input type="checkbox" id="telegram_enabled" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
                     <label for="telegram_enabled" class="ml-2 block text-sm text-gray-900">启用 Telegram 推送</label>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-md space-y-4">
+                <h3 class="text-xl font-semibold text-gray-900 border-b pb-3">MCP 记忆管理</h3>
+                <div class="text-sm text-gray-600 mb-4">
+                    <p>Model Context Protocol (MCP) 让AI能够访问外部工具和数据源，管理用户记忆和个性化分析。</p>
+                </div>
+                <div class="flex items-center justify-between p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border border-indigo-100">
+                    <div>
+                        <h4 class="font-medium text-gray-900">MCP 管理中心</h4>
+                        <p class="text-sm text-gray-600">服务器配置、AI记忆管理和执行日志</p>
+                    </div>
+                    <a href="/mcp.html" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md transition shadow-sm">
+                        进入管理
+                    </a>
                 </div>
             </div>
         </div>

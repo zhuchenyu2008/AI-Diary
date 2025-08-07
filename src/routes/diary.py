@@ -31,13 +31,13 @@ def require_auth(f):
 
     return decorated_function
 
-def analyze_entry_async(entry_id, text_content, image_path):
+def analyze_entry_async(entry_id, text_content, image_path, user_id=None):
     """异步分析日记条目"""
     try:
         # 重新获取数据库连接
         from src.main import app
         with app.app_context():
-            analysis = ai_service.analyze_entry(text_content, image_path)
+            analysis = ai_service.analyze_entry(text_content, image_path, user_id)
             
             # 更新数据库 - 确保线程安全
             entry = DiaryEntry.query.get(entry_id)
@@ -97,9 +97,11 @@ def create_entry():
         
         # 异步进行AI分析
         if text_content or full_image_path:
+            # 获取当前用户ID
+            user_id = session.get('user_id')
             thread = threading.Thread(
                 target=analyze_entry_async,
-                args=(entry.id, text_content, full_image_path)
+                args=(entry.id, text_content, full_image_path, user_id)
             )
             thread.daemon = True
             thread.start()

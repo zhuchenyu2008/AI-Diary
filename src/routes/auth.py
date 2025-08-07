@@ -48,6 +48,7 @@ def login():
             password_correct = True
         if password_correct:
             session['authenticated'] = True
+            session['user_id'] = auth_record.id  # 添加user_id到session
             return jsonify({'success': True, 'message': '登录成功'})
         else:
             return jsonify({'success': False, 'message': '密码错误'}), 401
@@ -59,6 +60,7 @@ def login():
 def logout():
     """用户登出"""
     session.pop('authenticated', None)
+    session.pop('user_id', None)  # 同时清除user_id
     return jsonify({'success': True, 'message': '登出成功'})
 
 @auth_bp.route('/check', methods=['GET'])
