@@ -101,8 +101,8 @@ docker-compose up -d
 | `ai_api_url` | AI API地址 | `https://api.openai.com/v1` |
 | `ai_api_key` | 您的AI API密钥 | *需要配置* |
 | `ai_model` | AI模型名称 | `gpt-3.5-turbo` |
-| `ai_prompt_template` | AI分析提示词（已集成MCP记忆功能） | 提示词模板在这里：https://github.com/zhuchenyu2008/AI-Diary/blob/26df7ea6db8a4d0eb3b2622d313d40f7e2b96eaf/AI%20prompt%20word%20example.md |
-| `ai_summary_prompt` | 每日汇总提示词（已集成MCP记忆功能） | 提示词模板在这里：https://github.com/zhuchenyu2008/AI-Diary/blob/26df7ea6db8a4d0eb3b2622d313d40f7e2b96eaf/AI%20prompt%20word%20example.md |
+| `ai_prompt_template` | AI分析提示词（已集成MCP记忆功能） | 已配置默认提示词，可按需更改 |
+| `ai_summary_prompt` | 每日汇总提示词（已集成MCP记忆功能） | 已配置默认提示词，可按需更改 |
 
 ### MCP 配置
 
@@ -115,6 +115,8 @@ MCP (Model Context Protocol) 功能为AI提供了长期记忆能力，让AI能�
 | **记忆分类** | 支持偏好(preference)、习惯(habit)、事实(fact)、情感(emotion)、经历(experience)等类型 |
 | **智能运用** | AI在后续分析中会自然地运用已学习的记忆信息 |
 | **记忆管理** | 在设置页面的MCP标签中查看和管理AI学习的记忆 |
+
+具体说明：https://github.com/zhuchenyu2008/AI-Diary/blob/main/MCP_USAGE.md
 
 ### Telegram 配置 (可选)
 
@@ -137,7 +139,9 @@ MCP (Model Context Protocol) 功能为AI提供了长期记忆能力，让AI能�
 ## 致谢名单
 
 - 前端UI开发提示词工程：https://github.com/KuekHaoYang/AI-Prompt-Protocols
-- manus 10k+积分
+- 提示词优化工具：https://github.com/linshenkx/prompt-optimizer
+- InstCopilot API：claude-sonnet-4-20250514：280k+tokens
+- manus：10k+积分
 - code-X
 - jules
 - 硅基流动：moonshotai/Kimi-K2-Instruct：1000M+tokens
@@ -287,7 +291,7 @@ AI-Diary/
 - 安卓APP开发
 - 使单次记录AI通过上下文串联理解
 - 更多的推送支持
-- MCP服务器扩展和第三方集成
+- MCP服务器扩展和第三方集成（已完成）
 
 
 ### 开发规范
