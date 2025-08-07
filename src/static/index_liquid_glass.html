@@ -1,0 +1,1844 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI日记 - Liquid Glass</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <style>
+        :root {
+            --font-family-system: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Arial", "Noto Sans", "Liberation Sans", sans-serif;
+          
+            /* Light Mode Palette */
+            --bg-color-light: #f0f2f5;
+            --bg-image-light: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%);
+            --text-color-light: #1d1d1f;
+            --text-color-secondary-light: #6e6e73;
+            --accent-color-light: #007aff;
+            --glass-bg-light: rgba(242, 242, 247, 0.8);
+            --glass-border-light: rgba(255, 255, 255, 0.5);
+            --shadow-color-light: rgba(0, 0, 0, 0.1);
+
+            /* Dark Mode Palette */
+            --bg-color-dark: #121212;
+            --bg-image-dark: linear-gradient(120deg, #272B30 0%, #121212 100%);
+            --text-color-dark: #f5f5f7;
+            --text-color-secondary-dark: #8e8e93;
+            --accent-color-dark: #0a84ff;
+            --glass-bg-dark: rgba(28, 28, 30, 0.75);
+            --glass-border-dark: rgba(60, 60, 60, 0.7);
+            --shadow-color-dark: rgba(0, 0, 0, 0.3);
+
+            /* Success/Error Colors */
+            --success-color: #34c759;
+            --error-color: #ff3b30;
+            --warning-color: #ff9500;
+
+            /* Universal Variables */
+            --radius-2xl: 1.5rem; 
+            --radius-full: 9999px;
+            --shadow-sm: 0 2px 4px var(--shadow-color);
+            --shadow-md: 0 4px 12px var(--shadow-color);
+            --transition-fluid: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        body {
+            --bg-color: var(--bg-color-light);
+            --bg-image: var(--bg-image-light);
+            --text-color: var(--text-color-light);
+            --text-color-secondary: var(--text-color-secondary-light);
+            --accent-color: var(--accent-color-light);
+            --glass-bg: var(--glass-bg-light);
+            --glass-border: var(--glass-border-light);
+            --shadow-color: var(--shadow-color-light);
+            background-color: var(--bg-color);
+            background-image: var(--bg-image);
+            background-attachment: fixed;
+            font-family: var(--font-family-system);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            transition: background 0.3s ease;
+            line-height: 1.6;
+        }
+
+        body.dark-mode {
+            --bg-color: var(--bg-color-dark);
+            --bg-image: var(--bg-image-dark);
+            --text-color: var(--text-color-dark);
+            --text-color-secondary: var(--text-color-secondary-dark);
+            --accent-color: var(--accent-color-dark);
+            --glass-bg: var(--glass-bg-dark);
+            --glass-border: var(--glass-border-dark);
+            --shadow-color: var(--shadow-color-dark);
+        }
+
+        /* Global Styles */
+        *, *::before, *::after { 
+            box-sizing: border-box; 
+        }
+
+        /* Icon Base */
+        .icon { 
+            width: 1em; 
+            height: 1em; 
+            stroke-width: 2; 
+            fill: none; 
+            stroke: currentColor; 
+            transition: transform 0.3s ease; 
+        }
+
+        /* Glass Card Component */
+        .card { 
+            background: var(--glass-bg); 
+            backdrop-filter: blur(25px) saturate(180%); 
+            -webkit-backdrop-filter: blur(25px) saturate(180%); 
+            border-radius: var(--radius-2xl); 
+            box-shadow: var(--shadow-md); 
+            border: 1px solid var(--glass-border); 
+            transition: all var(--transition-fluid); 
+            padding: 1.5rem; 
+            position: relative; 
+        }
+        .card:hover { 
+            transform: translateY(-2px) scale(1.005); 
+            box-shadow: 0 8px 24px var(--shadow-color); 
+        }
+
+        /* Button Component */
+        .btn { 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem; 
+            font-size: 1rem; 
+            font-weight: 600; 
+            text-decoration: none; 
+            background-color: var(--accent-color); 
+            color: white; 
+            border: none; 
+            border-radius: var(--radius-2xl); 
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+            box-shadow: var(--shadow-sm); 
+            position: relative;
+            overflow: hidden;
+        }
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        .btn:hover::before {
+            left: 100%;
+        }
+        .btn:hover { 
+            transform: translateY(-2px); 
+            filter: brightness(1.1); 
+            box-shadow: 0 4px 12px var(--shadow-color); 
+        }
+        .btn:active { 
+            transform: translateY(0) scale(0.98); 
+        }
+        .btn-secondary { 
+            background: var(--glass-bg); 
+            color: var(--text-color); 
+            border: 1px solid var(--glass-border); 
+        }
+        .btn-destructive { 
+            background-color: var(--error-color); 
+        }
+        .btn-success { 
+            background-color: var(--success-color); 
+        }
+        .btn:disabled { 
+            background-color: var(--text-color-secondary); 
+            opacity: 0.5; 
+            cursor: not-allowed; 
+            transform: none; 
+            filter: none; 
+            box-shadow: none; 
+        }
+        .btn-sm { 
+            padding: 0.5rem 1rem; 
+            font-size: 0.875rem; 
+        }
+        .btn-lg { 
+            padding: 1rem 1.5rem; 
+            font-size: 1.125rem; 
+        }
+
+        /* Input Components */
+        .input-glass { 
+            width: 100%; 
+            background: var(--glass-bg); 
+            backdrop-filter: blur(10px) saturate(150%); 
+            border: 1px solid var(--glass-border); 
+            border-radius: var(--radius-2xl); 
+            padding: 0.75rem 1rem; 
+            font-size: 1rem; 
+            color: var(--text-color); 
+            transition: all var(--transition-fluid); 
+            resize: vertical;
+        } 
+        .input-glass:focus { 
+            outline: none; 
+            border-color: var(--accent-color); 
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-color) 30%, transparent); 
+            transform: scale(1.02);
+        }
+        .input-glass::placeholder {
+            color: var(--text-color-secondary);
+        }
+
+        /* Textarea specific */
+        textarea.input-glass { 
+            min-height: 120px; 
+        }
+
+        /* Form Groups */
+        .form-group { 
+            margin-bottom: 1.5rem; 
+        }
+        .form-group label { 
+            display: block; 
+            font-weight: 600; 
+            margin-bottom: 0.5rem; 
+            color: var(--text-color);
+        }
+
+        /* Navbar Component */
+        .navbar { 
+            position: sticky; 
+            top: 1rem; 
+            z-index: 100; 
+            margin: 1rem 1rem 2rem 1rem; 
+            padding: 1rem 1.5rem; 
+            background: var(--glass-bg); 
+            backdrop-filter: blur(25px) saturate(180%); 
+            -webkit-backdrop-filter: blur(25px) saturate(180%); 
+            border-radius: var(--radius-2xl); 
+            box-shadow: var(--shadow-md); 
+            border: 1px solid var(--glass-border); 
+            transition: all var(--transition-fluid); 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+        }
+        .navbar-brand { 
+            font-weight: 700; 
+            font-size: 1.25rem; 
+            display: flex; 
+            align-items: center; 
+            gap: 0.75rem;
+        }
+        .navbar-actions { 
+            display: flex; 
+            gap: 0.75rem; 
+        }
+
+        /* Tabs Component */
+        .tabs { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 1rem; 
+        }
+        .tab-list { 
+            position: relative; 
+            display: flex; 
+            background: var(--glass-bg); 
+            border-radius: var(--radius-2xl); 
+            padding: 0.5rem; 
+            border: 1px solid var(--glass-border); 
+        }
+        .tab-btn { 
+            flex: 1;
+            padding: 0.75rem 1.25rem; 
+            cursor: pointer; 
+            border: none; 
+            background: none; 
+            color: var(--text-color-secondary); 
+            font-size: 1rem; 
+            font-weight: 600; 
+            position: relative; 
+            transition: all 0.3s ease; 
+            border-radius: var(--radius-2xl); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 0.5rem;
+        }
+        .tab-btn.active { 
+            color: white; 
+            background: var(--accent-color); 
+            box-shadow: var(--shadow-sm); 
+            transform: scale(1.02);
+        }
+        .tab-content { 
+            display: none; 
+        }
+        .tab-content.active { 
+            display: block; 
+            animation: fade-in 0.4s ease; 
+        }
+        @keyframes fade-in { 
+            from { opacity: 0; transform: translateY(10px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        /* Badge Component */
+        .badge { 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 0.25rem 0.75rem; 
+            border-radius: var(--radius-full); 
+            font-size: 0.8rem; 
+            font-weight: 600; 
+            background-color: var(--accent-color); 
+            color: white; 
+        }
+        .badge-success { background-color: var(--success-color); }
+        .badge-error { background-color: var(--error-color); }
+        .badge-warning { background-color: var(--warning-color); }
+        .badge-secondary { 
+            background: var(--glass-bg); 
+            border: 1px solid var(--glass-border); 
+            color: var(--text-color); 
+        }
+
+        /* Avatar Component */
+        .avatar { 
+            width: 50px; 
+            height: 50px; 
+            border-radius: var(--radius-full); 
+            object-fit: cover; 
+            border: 2px solid var(--glass-border); 
+        }
+
+        /* Toast Component */
+        .toast-container { 
+            position: fixed; 
+            bottom: 2rem; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            z-index: 10000; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 0.5rem; 
+        }
+        .toast { 
+            min-width: 300px; 
+            background: var(--glass-bg); 
+            backdrop-filter: blur(25px) saturate(180%); 
+            -webkit-backdrop-filter: blur(25px) saturate(180%); 
+            border-radius: var(--radius-2xl); 
+            box-shadow: var(--shadow-md); 
+            border: 1px solid var(--glass-border); 
+            padding: 1rem; 
+            animation: toast-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); 
+            max-width: 400px; 
+            display: flex; 
+            align-items: center; 
+            gap: 1rem; 
+        }
+        @keyframes toast-in { 
+            from { opacity: 0; transform: translateY(20px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        /* Modal Component */
+        .modal-backdrop { 
+            position: fixed; 
+            inset: 0; 
+            z-index: 9998; 
+            background-color: rgba(0,0,0,0.3); 
+            backdrop-filter: blur(8px); 
+            opacity: 0; 
+            pointer-events: none; 
+            transition: opacity 0.3s ease-out; 
+        }
+        .modal-backdrop.visible { 
+            opacity: 1; 
+            pointer-events: auto; 
+        }
+        .modal-dialog { 
+            position: fixed; 
+            top: 50%; 
+            left: 50%; 
+            z-index: 9999; 
+            width: 90%; 
+            max-width: 500px; 
+            transform: translate(-50%, -50%) scale(0.95); 
+            opacity: 0; 
+            pointer-events: none; 
+            transition: all 0.3s ease-out; 
+        }
+        .modal-dialog.visible { 
+            transform: translate(-50%, -50%) scale(1); 
+            opacity: 1; 
+            pointer-events: auto; 
+        }
+
+        /* Accordion Component */
+        .accordion-item { 
+            background: var(--glass-bg); 
+            border-radius: var(--radius-2xl); 
+            margin-bottom: 0.5rem; 
+            overflow: hidden; 
+            border: 1px solid var(--glass-border); 
+            transition: all var(--transition-fluid);
+        }
+        .accordion-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            width: 100%; 
+            padding: 1rem; 
+            background: none; 
+            border: none; 
+            font-size: 1rem; 
+            font-weight: 600; 
+            cursor: pointer; 
+            color: var(--text-color); 
+            transition: all 0.3s ease;
+        }
+        .accordion-header:hover {
+            background: color-mix(in srgb, var(--accent-color) 10%, transparent);
+        }
+        .accordion-content { 
+            max-height: 0; 
+            overflow: hidden; 
+            transition: max-height 0.3s ease-out; 
+        }
+        .accordion-content-inner { 
+            padding: 0 1rem 1rem 1rem; 
+        }
+        .accordion-item.active .accordion-header .icon { 
+            transform: rotate(180deg); 
+        }
+
+        /* Theme Switcher */
+        .theme-switcher { 
+            display: inline-flex; 
+            background: var(--glass-bg); 
+            border-radius: var(--radius-full); 
+            padding: 0.25rem; 
+            border: 1px solid var(--glass-border); 
+        }
+        .theme-switcher button { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            width: 36px; 
+            height: 36px; 
+            background: none; 
+            border: none; 
+            border-radius: var(--radius-full); 
+            cursor: pointer; 
+            color: var(--text-color-secondary); 
+            transition: all 0.2s ease; 
+        }
+        .theme-switcher button:not(.active):hover { 
+            background-color: color-mix(in srgb, var(--text-color) 10%, transparent); 
+        }
+        .theme-switcher button.active { 
+            background-color: var(--accent-color); 
+            color: white; 
+            transform: scale(1.05); 
+        }
+
+        /* Search Component */
+        .search-wrapper { 
+            position: relative; 
+        }
+        .search-icon { 
+            position: absolute; 
+            left: 1rem; 
+            top: 50%; 
+            transform: translateY(-50%); 
+            color: var(--text-color-secondary); 
+        }
+        .search-input { 
+            padding-left: 3rem; 
+        }
+
+        /* Spinner Component */
+        .spinner { 
+            width: 24px; 
+            height: 24px; 
+            border: 3px solid color-mix(in srgb, var(--glass-bg) 50%, transparent); 
+            border-top-color: var(--accent-color); 
+            border-radius: var(--radius-full); 
+            animation: spin 1s linear infinite; 
+        }
+        @keyframes spin { 
+            to { transform: rotate(360deg); } 
+        }
+
+        /* Checkbox Component */
+        .checkbox-wrapper { 
+            display: flex; 
+            align-items: center; 
+            gap: 0.75rem; 
+            cursor: pointer; 
+        }
+        .checkbox-input { 
+            display: none; 
+        }
+        .checkbox-custom { 
+            width: 24px; 
+            height: 24px; 
+            border: 2px solid var(--text-color-secondary); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            transition: all 0.2s ease-out; 
+            flex-shrink: 0; 
+            border-radius: 0.6rem; 
+        }
+        .checkbox-custom .icon { 
+            opacity: 0; 
+            transform: scale(0.5); 
+            transition: all 0.2s ease-out; 
+            color: white; 
+            stroke-width: 3; 
+        }
+        .checkbox-input:checked + .checkbox-custom { 
+            background-color: var(--accent-color); 
+            border-color: var(--accent-color); 
+        }
+        .checkbox-input:checked + .checkbox-custom .icon { 
+            opacity: 1; 
+            transform: scale(1); 
+        }
+
+        /* Countdown Display */
+        .countdown-display { 
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace; 
+            font-size: 2rem; 
+            font-weight: 700; 
+            background: linear-gradient(135deg, var(--accent-color), color-mix(in srgb, var(--accent-color) 80%, var(--success-color))); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            background-clip: text; 
+        }
+
+        /* Image Component */
+        .image-container { 
+            display: inline-block; 
+            border-radius: var(--radius-2xl); 
+            background: var(--glass-bg); 
+            overflow: hidden; 
+            width: 100%; 
+            position: relative; 
+            transition: all var(--transition-fluid);
+        }
+        .image-container:hover {
+            transform: scale(1.02);
+            box-shadow: var(--shadow-md);
+        }
+        .image-container img { 
+            width: 100%; 
+            height: auto; 
+            object-fit: cover; 
+            transition: opacity 0.3s ease; 
+        }
+
+        /* Loading Animation */
+        .loading-dots::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            text-align: left;
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+        @keyframes dots {
+            0%, 20% { content: ''; }
+            40% { content: '.'; }
+            60% { content: '..'; }
+            80%, 100% { content: '...'; }
+        }
+
+        /* Utility Classes */
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            padding: 0 1rem; 
+        }
+        .flex { display: flex; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .justify-center { justify-content: center; }
+        .gap-1 { gap: 0.25rem; }
+        .gap-2 { gap: 0.5rem; }
+        .gap-3 { gap: 0.75rem; }
+        .gap-4 { gap: 1rem; }
+        .gap-6 { gap: 1.5rem; }
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .mt-4 { margin-top: 1rem; }
+        .mt-6 { margin-top: 1.5rem; }
+        .p-4 { padding: 1rem; }
+        .p-6 { padding: 1.5rem; }
+        .text-center { text-align: center; }
+        .text-sm { font-size: 0.875rem; }
+        .text-lg { font-size: 1.125rem; }
+        .text-xl { font-size: 1.25rem; }
+        .text-2xl { font-size: 1.5rem; }
+        .font-bold { font-weight: 700; }
+        .font-semibold { font-weight: 600; }
+        .text-secondary { color: var(--text-color-secondary); }
+        .hidden { display: none; }
+        .block { display: block; }
+        .w-full { width: 100%; }
+        .h-full { height: 100%; }
+        .min-h-screen { min-height: 100vh; }
+        .space-y-4 > * + * { margin-top: 1rem; }
+        .space-y-6 > * + * { margin-top: 1.5rem; }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container { padding: 0 0.5rem; }
+            .navbar { margin: 0.5rem 0.5rem 1rem 0.5rem; }
+            .card { padding: 1rem; }
+            .navbar-actions { gap: 0.5rem; }
+            .tab-btn { padding: 0.5rem 1rem; font-size: 0.875rem; }
+            .modal-dialog { width: 95%; }
+            
+            /* Stack buttons on mobile */
+            .btn-group-mobile { 
+                display: flex; 
+                flex-direction: column; 
+                gap: 0.5rem; 
+            }
+            .btn-group-mobile .btn { 
+                width: 100%; 
+            }
+        }
+
+        /* Special Effects */
+        .gradient-text {
+            background: linear-gradient(135deg, var(--accent-color), color-mix(in srgb, var(--accent-color) 80%, var(--success-color)));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .shimmer {
+            animation: shimmer 2s infinite;
+        }
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Skeleton Loading */
+        .skeleton { 
+            border-radius: var(--radius-2xl); 
+            background-color: color-mix(in srgb, var(--text-color) 15%, transparent); 
+            animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite; 
+        }
+        .skeleton-text { height: 1em; margin-bottom: 0.5rem; }
+        .skeleton-text:last-child { width: 70%; }
+        @keyframes pulse { 
+            0%, 100% { opacity: 1; } 
+            50% { opacity: .5; } 
+        }
+    </style>
+</head>
+<body id="app-body">
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Modal Backdrop -->
+    <div id="modal-backdrop" class="modal-backdrop"></div>
+
+    <!-- Main App Container -->
+    <div id="app" class="min-h-screen">
+        <!-- Loading State -->
+        <div id="loading-screen" class="min-h-screen flex items-center justify-center">
+            <div class="card text-center">
+                <div class="spinner mb-4" style="margin: 0 auto;"></div>
+                <p>加载中...</p>
+            </div>
+        </div>
+
+        <!-- Login Form -->
+        <div id="login-form" class="min-h-screen flex items-center justify-center p-4 hidden">
+            <div class="card" style="width: 100%; max-width: 400px;">
+                <div class="text-center mb-6">
+                    <svg class="icon" style="width: 4rem; height: 4rem; margin: 0 auto 1rem; color: var(--accent-color);" viewBox="0 0 24 24">
+                        <path d="M12 7v14"></path>
+                        <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path>
+                    </svg>
+                    <h1 class="text-2xl font-bold mb-2">AI日记</h1>
+                    <p class="text-secondary">请输入密码以继续使用</p>
+                </div>
+                
+                <form id="login-form-element" class="space-y-4">
+                    <div class="form-group">
+                        <label for="password-input">密码</label>
+                        <input type="password" id="password-input" name="password" class="input-glass" placeholder="请输入密码" autocomplete="current-password">
+                    </div>
+                    
+                    <div id="login-error" class="hidden" style="background: color-mix(in srgb, var(--error-color) 20%, transparent); border: 1px solid var(--error-color); color: var(--error-color); padding: 0.75rem; border-radius: var(--radius-2xl); font-size: 0.875rem;"></div>
+                    
+                    <button type="submit" id="login-btn" class="btn w-full">登录</button>
+                </form>
+                
+                <div class="mt-6 text-center text-sm text-secondary">
+                    默认密码：1234
+                </div>
+            </div>
+        </div>
+
+        <!-- Main App Interface -->
+        <div id="main-app" class="hidden">
+            <!-- Navigation -->
+            <nav class="navbar">
+                <div class="navbar-brand">
+                    <svg class="icon" style="width: 2rem; height: 2rem; color: var(--accent-color);" viewBox="0 0 24 24">
+                        <path d="M12 7v14"></path>
+                        <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path>
+                    </svg>
+                    AI日记
+                </div>
+                <div class="navbar-actions">
+                    <div class="theme-switcher" id="theme-switcher">
+                        <button data-theme="light" aria-label="浅色主题">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="5"></circle>
+                                <line x1="12" y1="1" x2="12" y2="3"></line>
+                                <line x1="12" y1="21" x2="12" y2="23"></line>
+                                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                                <line x1="1" y1="12" x2="3" y2="12"></line>
+                                <line x1="21" y1="12" x2="23" y2="12"></line>
+                                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                            </svg>
+                        </button>
+                        <button data-theme="dark" aria-label="深色主题">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                            </svg>
+                        </button>
+                        <button data-theme="system" aria-label="跟随系统" class="active">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                                <line x1="8" y1="21" x2="16" y2="21"></line>
+                                <line x1="12" y1="17" x2="12" y2="21"></line>
+                            </svg>
+                        </button>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" onclick="window.location.reload()">刷新</button>
+                    <button class="btn btn-secondary btn-sm" onclick="openSettings()">设置</button>
+                    <button class="btn btn-secondary btn-sm" id="logout-btn">登出</button>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="container space-y-6">
+                <!-- Tabs -->
+                <div class="tabs">
+                    <div class="tab-list">
+                        <button class="tab-btn active" data-tab="timeline">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            时间线
+                        </button>
+                        <button class="tab-btn" data-tab="history">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <path d="M12 7v14"></path>
+                                <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path>
+                            </svg>
+                            历史日记
+                        </button>
+                    </div>
+
+                    <!-- Timeline Tab Content -->
+                    <div class="tab-content active" id="timeline-content">
+                        <!-- Daily Summary Countdown -->
+                        <div class="card" style="background: linear-gradient(135deg, color-mix(in srgb, var(--accent-color) 10%, transparent), color-mix(in srgb, var(--success-color) 10%, transparent)); border: 1px solid color-mix(in srgb, var(--accent-color) 30%, transparent);">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold gradient-text">每日总结</h3>
+                                <div class="text-center">
+                                    <p class="text-sm text-secondary mb-1">距离自动总结还有：</p>
+                                    <div id="countdown-display" class="countdown-display">00:00:00</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-secondary mb-1">系统将在每天0点自动生成当日的总结日记</p>
+                                    <p class="text-sm text-secondary">📝 已生成的每日总结可在"历史日记"标签页查看</p>
+                                </div>
+                                <button id="manual-summary-btn" class="btn btn-success">现在总结</button>
+                            </div>
+                        </div>
+
+                        <!-- Write Entry Area -->
+                        <div class="card">
+                            <h2 class="text-lg font-semibold mb-4">今日记录</h2>
+                            <div class="space-y-4">
+                                <div style="position: relative;">
+                                    <textarea id="entry-textarea" class="input-glass" placeholder="记录今天发生的事情..." style="min-height: 150px;"></textarea>
+                                    <div style="position: absolute; bottom: 0.5rem; right: 1rem; font-size: 0.75rem; color: var(--text-color-secondary);" id="char-count">0/1000</div>
+                                </div>
+                                <div class="flex gap-3 btn-group-mobile">
+                                    <button id="submit-entry-btn" class="btn">
+                                        <span id="submit-text">发送</span>
+                                        <div id="submit-spinner" class="spinner hidden" style="width: 1rem; height: 1rem;"></div>
+                                    </button>
+                                    <button id="camera-btn" class="btn btn-secondary">
+                                        <svg class="icon" viewBox="0 0 24 24">
+                                            <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path>
+                                            <circle cx="12" cy="13" r="3"></circle>
+                                        </svg>
+                                        拍照
+                                    </button>
+                                    <button id="upload-btn" class="btn btn-secondary">
+                                        <svg class="icon" viewBox="0 0 24 24">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                            <polyline points="7 10 12 15 17 10"></polyline>
+                                            <line x1="12" x2="12" y1="15" y2="3"></line>
+                                        </svg>
+                                        上传图片
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Search and Filter -->
+                        <div class="card">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="search-wrapper w-full">
+                                    <svg class="search-icon icon" viewBox="0 0 24 24">
+                                        <circle cx="11" cy="11" r="8"></circle>
+                                        <path d="m21 21-4.35-4.35"></path>
+                                    </svg>
+                                    <input type="text" id="search-input" class="input-glass search-input" placeholder="搜索日记内容...">
+                                </div>
+                                <button id="filter-toggle" class="btn btn-secondary">
+                                    <svg class="icon" viewBox="0 0 24 24">
+                                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                                    </svg>
+                                    筛选
+                                </button>
+                            </div>
+                            <div id="filter-panel" class="hidden" style="border-top: 1px solid var(--glass-border); padding-top: 1rem;">
+                                <label class="block text-sm font-semibold mb-2">情绪筛选</label>
+                                <div id="mood-filters" class="flex gap-2" style="flex-wrap: wrap;">
+                                    <button class="btn btn-sm btn-secondary mood-filter active" data-mood="">全部</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Entries List -->
+                        <div id="entries-list" class="space-y-4">
+                            <!-- Entries will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- History Tab Content -->
+                    <div class="tab-content" id="history-content">
+                        <div class="card">
+                            <div class="flex items-center justify-between mb-2">
+                                <h2 class="text-lg font-semibold">历史日记</h2>
+                                <label class="checkbox-wrapper">
+                                    <input type="checkbox" id="show-mood-toggle" class="checkbox-input" checked>
+                                    <span class="checkbox-custom">
+                                        <svg class="icon" viewBox="0 0 24 24">
+                                            <path d="M20 6L9 17l-5-5"></path>
+                                        </svg>
+                                    </span>
+                                    <span class="text-sm">显示情绪标签</span>
+                                </label>
+                            </div>
+                            <p class="text-sm text-secondary">按日期浏览过往的日记记录，点击展开查看详细内容</p>
+                        </div>
+
+                        <div id="history-list" class="space-y-4">
+                            <!-- History entries will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Settings Overlay -->
+    <div id="config-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); backdrop-filter: blur(8px); z-index:9999; display:none; animation:fadeIn 0.3s;">
+        <iframe src="/config.html" style="width:100%; height:100%; border:none; border-radius: var(--radius-2xl); margin: 2rem; width: calc(100% - 4rem); height: calc(100% - 4rem);"></iframe>
+        <button onclick="closeSettings()" style="position: absolute; top: 2rem; right: 2rem; background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-color); padding: 0.5rem; border-radius: var(--radius-full); cursor: pointer; backdrop-filter: blur(10px);">
+            <svg style="width: 1.5rem; height: 1.5rem;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 6L6 18"></path>
+                <path d="M6 6l12 12"></path>
+            </svg>
+        </button>
+    </div>
+
+    <script>
+        // Global State
+        let appState = {
+            currentUser: null,
+            entries: [],
+            activeTab: 'timeline',
+            loading: true,
+            newEntryText: '',
+            searchQuery: '',
+            filterMood: '',
+            isSubmitting: false,
+            editingEntry: null,
+            expandedDays: new Set(),
+            countdown: { hours: 0, minutes: 0, seconds: 0 },
+            isGeneratingSummary: false,
+            showMoodInHistory: true,
+            showFilters: false
+        };
+
+        // Utility Functions
+        function $(id) { return document.getElementById(id); }
+        function $$(selector) { return document.querySelectorAll(selector); }
+
+        function showElement(id) { $(id)?.classList.remove('hidden'); }
+        function hideElement(id) { $(id)?.classList.add('hidden'); }
+
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diff = now - date;
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            
+            if (days === 0) {
+                return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+            } else if (days === 1) {
+                return '昨天 ' + date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+            } else if (days < 7) {
+                return `${days}天前`;
+            } else {
+                return date.toLocaleDateString('zh-CN', { 
+                    month: 'numeric', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+        }
+
+        function formatAnalysis(analysis) {
+            if (!analysis) return '';
+            if (analysis.includes('AI理解中')) return analysis;
+            
+            return analysis
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/\n/g, '<br>');
+        }
+
+        function getTodayDateString() {
+            const today = new Date();
+            return today.getFullYear() + '-' + 
+                   String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                   String(today.getDate()).padStart(2, '0');
+        }
+
+        // Toast Notifications
+        function showToast(message, type = 'info') {
+            const container = $('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            
+            const badgeClass = type === 'success' ? 'badge-success' : 
+                              type === 'error' ? 'badge-error' : 'badge';
+            
+            toast.innerHTML = `
+                <span class="badge ${badgeClass}">${type === 'success' ? '✓' : type === 'error' ? '!' : 'i'}</span>
+                <p style="margin: 0;">${message}</p>
+            `;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(20px)';
+                setTimeout(() => container.removeChild(toast), 300);
+            }, 3000);
+        }
+
+        // Theme Management
+        function initTheme() {
+            const themeSwitcher = $('theme-switcher');
+            const themeButtons = themeSwitcher.querySelectorAll('button');
+            const body = document.body;
+
+            const applyTheme = (theme) => {
+                if (theme === 'system') {
+                    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    body.classList.toggle('dark-mode', systemPrefersDark);
+                } else {
+                    body.classList.toggle('dark-mode', theme === 'dark');
+                }
+            };
+
+            const updateButtonState = (activeTheme) => {
+                themeButtons.forEach(button => {
+                    button.classList.toggle('active', button.dataset.theme === activeTheme);
+                });
+            };
+
+            const savedTheme = localStorage.getItem('theme') || 'system';
+            applyTheme(savedTheme);
+            updateButtonState(savedTheme);
+
+            themeButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const newTheme = button.dataset.theme;
+                    localStorage.setItem('theme', newTheme);
+                    applyTheme(newTheme);
+                    updateButtonState(newTheme);
+                });
+            });
+
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+                const currentTheme = localStorage.getItem('theme');
+                if (currentTheme === 'system') {
+                    applyTheme('system');
+                }
+            });
+        }
+
+        // Countdown Timer
+        function calculateCountdown() {
+            const now = new Date();
+            const tomorrow = new Date(now);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(0, 0, 0, 0);
+            
+            const diff = tomorrow.getTime() - now.getTime();
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            return { hours, minutes, seconds };
+        }
+
+        function updateCountdown() {
+            const countdown = calculateCountdown();
+            const display = $('countdown-display');
+            if (display) {
+                display.textContent = `${countdown.hours.toString().padStart(2, '0')}:${countdown.minutes.toString().padStart(2, '0')}:${countdown.seconds.toString().padStart(2, '0')}`;
+            }
+            appState.countdown = countdown;
+        }
+
+        // API Functions
+        async function fetchUserInfo() {
+            try {
+                const response = await fetch('/api/auth/check', { credentials: 'include' });
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.authenticated) {
+                        appState.currentUser = { authenticated: true };
+                        return true;
+                    }
+                }
+                return false;
+            } catch (error) {
+                console.error('检查认证状态失败:', error);
+                return false;
+            }
+        }
+
+        async function fetchEntries() {
+            try {
+                const params = new URLSearchParams();
+                
+                if (appState.activeTab === 'history') {
+                    params.append('view', 'history');
+                }
+                
+                params.append('per_page', '100');
+                
+                const url = `/api/diary/entries?${params.toString()}`;
+                const response = await fetch(url, { credentials: 'include' });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    appState.entries = data.entries || [];
+                    renderEntries();
+                    renderHistory();
+                } else {
+                    console.error('获取日记条目失败，状态码:', response.status);
+                }
+            } catch (error) {
+                console.error('获取日记条目异常:', error);
+            }
+        }
+
+        async function login(password) {
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    appState.currentUser = { authenticated: true };
+                    return { success: true };
+                } else {
+                    return { success: false, message: data.message || '登录失败' };
+                }
+            } catch (error) {
+                console.error('登录失败:', error);
+                return { success: false, message: '登录失败，请重试' };
+            }
+        }
+
+        async function logout() {
+            try {
+                await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                window.location.reload();
+            } catch (error) {
+                console.error('登出失败:', error);
+            }
+        }
+
+        async function submitEntry(textContent, imageFile = null) {
+            const formData = new FormData();
+            formData.append('text_content', textContent);
+            if (imageFile) {
+                formData.append('image', imageFile);
+            }
+
+            try {
+                const response = await fetch('/api/diary/entries', {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    appState.newEntryText = '';
+                    $('entry-textarea').value = '';
+                    updateCharCount();
+                    
+                    fetchEntries();
+                    showToast('日记保存成功！', 'success');
+                    
+                    // Poll for AI analysis completion
+                    pollAIAnalysis();
+                    return true;
+                } else {
+                    showToast('保存失败，请重试', 'error');
+                    return false;
+                }
+            } catch (error) {
+                console.error('发送日记失败:', error);
+                showToast('保存失败，请重试', 'error');
+                return false;
+            }
+        }
+
+        async function pollAIAnalysis() {
+            let attempts = 0;
+            const maxAttempts = 30;
+            
+            const pollInterval = setInterval(async () => {
+                attempts++;
+                try {
+                    const response = await fetch('/api/diary/entries?per_page=1', {
+                        credentials: 'include'
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        const latestEntry = data.entries[0];
+                        
+                        if (latestEntry && latestEntry.ai_analysis && !latestEntry.ai_analysis.includes('AI理解中')) {
+                            clearInterval(pollInterval);
+                            fetchEntries();
+                            showToast('AI理解完成！', 'success');
+                        }
+                    }
+                    
+                    if (attempts >= maxAttempts) {
+                        clearInterval(pollInterval);
+                    }
+                } catch (error) {
+                    console.error('轮询AI分析状态失败:', error);
+                }
+            }, 1000);
+        }
+
+        async function deleteEntry(entryId) {
+            if (!confirm('确定要删除这条日记吗？')) return false;
+
+            try {
+                const response = await fetch(`/api/diary/entries/${entryId}`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    appState.entries = appState.entries.filter(entry => entry.id !== entryId);
+                    renderEntries();
+                    renderHistory();
+                    showToast('日记已删除', 'success');
+                    return true;
+                } else {
+                    showToast('删除失败，请重试', 'error');
+                    return false;
+                }
+            } catch (error) {
+                console.error('删除日记失败:', error);
+                showToast('删除失败，请重试', 'error');
+                return false;
+            }
+        }
+
+        async function generateDailySummary() {
+            try {
+                const response = await fetch('/api/diary/generate-daily-summary', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ date: getTodayDateString() }),
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    showToast('每日总结生成成功！', 'success');
+                    await fetchEntries();
+                    switchTab('history');
+                    setTimeout(() => {
+                        showToast('每日总结已添加到历史日记 📝', 'success');
+                    }, 1000);
+                    return true;
+                } else {
+                    const error = await response.json();
+                    showToast(error.message || '生成总结失败，请重试', 'error');
+                    return false;
+                }
+            } catch (error) {
+                console.error('生成总结失败:', error);
+                showToast('生成总结失败，请重试', 'error');
+                return false;
+            }
+        }
+
+        // Rendering Functions
+        function renderEntries() {
+            const container = $('entries-list');
+            const filteredEntries = getFilteredEntries();
+            
+            if (filteredEntries.length === 0) {
+                container.innerHTML = `
+                    <div class="card text-center">
+                        <svg class="icon" style="width: 3rem; height: 3rem; color: var(--text-color-secondary); margin: 0 auto 1rem;" viewBox="0 0 24 24">
+                            <path d="M12 7v14"></path>
+                            <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path>
+                        </svg>
+                        <p class="text-secondary mb-2">${appState.searchQuery || appState.filterMood ? '没有找到匹配的日记' : '还没有日记条目，开始写下第一篇吧！'}</p>
+                        ${(appState.searchQuery || appState.filterMood) ? '<button class="btn btn-secondary mt-2" onclick="clearFilters()">清除筛选</button>' : ''}
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filteredEntries.map(entry => `
+                <div class="card">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2 text-sm text-secondary">
+                            <svg class="icon" viewBox="0 0 24 24" style="width: 1rem; height: 1rem;">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            ${formatTime(entry.timestamp)}
+                        </div>
+                        ${!entry.is_daily_summary ? `
+                            <div class="flex gap-2">
+                                <button class="btn btn-sm btn-secondary" onclick="editEntry('${entry.id}')" title="编辑这篇日记">
+                                    <svg class="icon" style="width: 0.875rem; height: 0.875rem;" viewBox="0 0 24 24">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                    </svg>
+                                    编辑
+                                </button>
+                                <button class="btn btn-sm btn-destructive" onclick="deleteEntry('${entry.id}')" title="删除这篇日记">
+                                    <svg class="icon" style="width: 0.875rem; height: 0.875rem;" viewBox="0 0 24 24">
+                                        <path d="M3 6h18"></path>
+                                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                                        <path d="M8 6V4c0-1 1-2 2-2h4c0 1 1 2 1 2v2"></path>
+                                        <line x1="10" x2="10" y1="11" y2="17"></line>
+                                        <line x1="14" x2="14" y1="11" y2="17"></line>
+                                    </svg>
+                                    删除
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                    
+                    ${entry.text_content ? `<div class="mb-4"><p style="white-space: pre-wrap;">${entry.text_content}</p></div>` : ''}
+                    
+                    ${entry.image_path ? `
+                        <div class="mb-4">
+                            <div class="image-container" onclick="window.open('${entry.image_path}', '_blank')" style="cursor: pointer;">
+                                <img src="${entry.image_path}" alt="日记图片" style="width: 100%; height: auto;">
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    ${entry.ai_analysis ? `
+                        <div style="background: color-mix(in srgb, var(--accent-color) 10%, transparent); border: 1px solid color-mix(in srgb, var(--accent-color) 30%, transparent); border-radius: var(--radius-2xl); padding: 1rem;">
+                            <h4 class="text-sm font-semibold mb-2" style="color: var(--accent-color);">AI理解</h4>
+                            <div class="text-sm" style="color: var(--accent-color);">${formatAnalysis(entry.ai_analysis)}</div>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        function renderHistory() {
+            const container = $('history-list');
+            const historyDays = getHistoryEntriesByDate();
+            
+            const historyArray = Object.entries(historyDays)
+                .map(([date, entries]) => ({ date, entries }))
+                .sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            if (historyArray.length === 0) {
+                container.innerHTML = `
+                    <div class="card text-center">
+                        <svg class="icon" style="width: 3rem; height: 3rem; color: var(--text-color-secondary); margin: 0 auto 1rem;" viewBox="0 0 24 24">
+                            <path d="M12 7v14"></path>
+                            <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path>
+                        </svg>
+                        <p class="text-secondary">还没有历史日记记录</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = historyArray.map(({ date, entries: dayEntries }) => {
+                const isExpanded = appState.expandedDays.has(date);
+                const dateObj = new Date(date);
+                const formattedDate = dateObj.toLocaleDateString('zh-CN', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    weekday: 'long'
+                });
+
+                return `
+                    <div class="card" style="padding: 0; overflow: hidden;">
+                        <div class="p-6" style="cursor: pointer; transition: background-color 0.2s ease;" onclick="toggleDayExpansion('${date}')" onmouseover="this.style.background='color-mix(in srgb, var(--accent-color) 5%, transparent)'" onmouseout="this.style.background='transparent'">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-lg font-semibold">${formattedDate}</h3>
+                                    <p class="text-sm text-secondary mt-1">${generateDaySummary(dayEntries, date)}</p>
+                                </div>
+                                <svg class="icon" style="transform: ${isExpanded ? 'rotate(90deg)' : 'rotate(0deg)'}; transition: transform 0.2s ease; color: var(--text-color-secondary);" viewBox="0 0 24 24">
+                                    <path d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        
+                        ${isExpanded ? `
+                            <div style="border-top: 1px solid var(--glass-border); background: color-mix(in srgb, var(--glass-bg) 50%, transparent); padding: 1rem;">
+                                <div class="space-y-4">
+                                    ${dayEntries.map(entry => `
+                                        <div class="${entry.is_daily_summary ? 'card' : 'card'}" style="${entry.is_daily_summary ? 'background: linear-gradient(135deg, color-mix(in srgb, var(--warning-color) 10%, transparent), color-mix(in srgb, var(--success-color) 10%, transparent)); border: 1px solid color-mix(in srgb, var(--warning-color) 30%, transparent);' : ''}">
+                                            <div class="flex items-center justify-between mb-3">
+                                                <div class="flex items-center gap-2 text-sm text-secondary">
+                                                    <svg class="icon" style="width: 1rem; height: 1rem;" viewBox="0 0 24 24">
+                                                        ${entry.is_daily_summary ? '<path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path>' : '<circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>'}
+                                                    </svg>
+                                                    ${entry.is_daily_summary ? '每日总结' : formatTime(entry.created_at)}
+                                                </div>
+                                                ${!entry.is_daily_summary ? `
+                                                    <div class="flex gap-2">
+                                                        <button class="btn btn-sm btn-secondary" onclick="editEntry('${entry.id}')" title="编辑这篇日记">编辑</button>
+                                                        <button class="btn btn-sm btn-destructive" onclick="deleteEntry('${entry.id}')" title="删除这篇日记">删除</button>
+                                                    </div>
+                                                ` : ''}
+                                            </div>
+                                            
+                                            ${entry.text_content ? `<div class="mb-4"><p style="white-space: pre-wrap;">${entry.text_content}</p></div>` : ''}
+                                            
+                                            ${entry.image_path ? `
+                                                <div class="mb-4">
+                                                    <div class="image-container" onclick="window.open('${entry.image_path}', '_blank')" style="cursor: pointer;">
+                                                        <img src="${entry.image_path}" alt="日记图片" style="width: 100%; height: auto;">
+                                                    </div>
+                                                </div>
+                                            ` : ''}
+                                            
+                                            ${entry.ai_analysis ? `
+                                                <div style="background: color-mix(in srgb, var(--accent-color) 10%, transparent); border: 1px solid color-mix(in srgb, var(--accent-color) 30%, transparent); border-radius: var(--radius-2xl); padding: 1rem;">
+                                                    <h4 class="text-sm font-semibold mb-2" style="color: var(--accent-color);">AI理解</h4>
+                                                    <div class="text-sm" style="color: var(--accent-color);">${formatAnalysis(entry.ai_analysis)}</div>
+                                                </div>
+                                            ` : ''}
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderMoodFilters() {
+            const container = $('mood-filters');
+            const moods = getMoodTags();
+            
+            const buttons = [
+                { mood: '', label: '全部', active: !appState.filterMood },
+                ...moods.map(mood => ({ mood, label: mood, active: appState.filterMood === mood }))
+            ];
+            
+            container.innerHTML = buttons.map(({ mood, label, active }) => `
+                <button class="btn btn-sm btn-secondary mood-filter ${active ? 'active' : ''}" 
+                        data-mood="${mood}" 
+                        onclick="setMoodFilter('${mood}')"
+                        style="${active ? 'background-color: var(--accent-color); color: white;' : ''}">
+                    ${label}
+                </button>
+            `).join('');
+        }
+
+        // Helper Functions
+        function getFilteredEntries() {
+            return appState.entries.filter(entry => {
+                if (entry.is_daily_summary) return false;
+                
+                let include = true;
+                
+                if (appState.searchQuery) {
+                    const query = appState.searchQuery.toLowerCase();
+                    const textMatch = entry.text_content && entry.text_content.toLowerCase().includes(query);
+                    const analysisMatch = entry.ai_analysis && entry.ai_analysis.toLowerCase().includes(query);
+                    include = include && (textMatch || analysisMatch);
+                }
+                
+                if (appState.filterMood) {
+                    include = include && entry.ai_analysis && entry.ai_analysis.toLowerCase().includes(appState.filterMood.toLowerCase());
+                }
+                
+                return include;
+            });
+        }
+
+        function getHistoryEntriesByDate() {
+            const grouped = {};
+            
+            appState.entries.forEach(entry => {
+                const entryDate = entry.timestamp ? entry.timestamp.split('T')[0] : null;
+                if (entryDate) {
+                    if (!grouped[entryDate]) {
+                        grouped[entryDate] = [];
+                    }
+                    grouped[entryDate].push(entry);
+                }
+            });
+            
+            return grouped;
+        }
+
+        function generateDaySummary(dayEntries, date) {
+            if (dayEntries.length === 0) return '';
+            
+            const dailySummary = dayEntries.find(entry => entry.is_daily_summary);
+            
+            if (dailySummary) {
+                const summaryText = dailySummary.text_content || '';
+                const preview = summaryText.length > 50 ? summaryText.substring(0, 50) + '...' : summaryText;
+                return `✅ 每日总结已生成 · ${preview}`;
+            }
+            
+            const today = getTodayDateString();
+            const regularEntries = dayEntries.filter(entry => !entry.is_daily_summary);
+            
+            if (regularEntries.length === 0) return '';
+            
+            const hasAnalyzingEntries = regularEntries.some(e => 
+                e.ai_analysis && ['AI理解中', '分析中', '处理中'].some(keyword => 
+                    e.ai_analysis.includes(keyword)
+                )
+            );
+            
+            if (date === today) {
+                if (hasAnalyzingEntries) {
+                    return `${regularEntries.length}条记录 · AI分析中，准备生成总结...`;
+                }
+                return `${regularEntries.length}条记录 · 可以手动生成每日总结`;
+            } else {
+                const allText = regularEntries
+                    .map(entry => entry.text_content || '')
+                    .filter(text => text.trim())
+                    .join(' ');
+                
+                const aiAnalyses = regularEntries
+                    .map(entry => entry.ai_analysis || '')
+                    .filter(analysis => analysis && !analysis.includes('AI理解中'));
+                
+                if (appState.showMoodInHistory && aiAnalyses.length > 0) {
+                    const combinedAnalysis = aiAnalyses.join(' ');
+                    const moodMatches = combinedAnalysis.match(/(开心|快乐|高兴|愉快|兴奋|满足|幸福|喜悦|乐观|轻松|平静|安静|放松|悠闲|舒适|宁静|沮丧|难过|伤心|忧郁|失落|孤独|愤怒|生气|烦躁|焦虑|紧张|担心|压力|疲惫|累|无聊|思考|反思|感动|温暖|感激|惊喜|期待|希望)/g);
+                    
+                    if (moodMatches && moodMatches.length > 0) {
+                        const uniqueMoods = [...new Set(moodMatches)];
+                        return `${regularEntries.length}条记录 · ${uniqueMoods.slice(0, 3).join('、')}的一天`;
+                    }
+                }
+                
+                const count = regularEntries.length;
+                return `${count}条记录 · ${allText.length > 25 ? allText.substring(0, 25) + '...' : allText || '记录生活点滴'}`;
+            }
+        }
+
+        function getMoodTags() {
+            const moods = new Set();
+            appState.entries.forEach(entry => {
+                if (entry.ai_analysis) {
+                    const moodMatches = entry.ai_analysis.match(/(开心|快乐|高兴|愉快|兴奋|满足|幸福|喜悦|乐观|轻松|平静|安静|放松|悠闲|舒适|宁静|沮丧|难过|伤心|忧郁|失落|孤独|愤怒|生气|烦躁|焦虑|紧张|担心|压力|疲惫|累|无聊|思考|反思|感动|温暖|感激|惊喜|期待|希望|困惑|疑惑|好奇)/g);
+                    if (moodMatches) {
+                        moodMatches.forEach(mood => moods.add(mood));
+                    }
+                }
+            });
+            return Array.from(moods);
+        }
+
+        function updateCharCount() {
+            const textarea = $('entry-textarea');
+            const counter = $('char-count');
+            const length = textarea.value.length;
+            counter.textContent = `${length}/1000`;
+            
+            if (length > 1000) {
+                counter.style.color = 'var(--error-color)';
+            } else if (length > 800) {
+                counter.style.color = 'var(--warning-color)';
+            } else {
+                counter.style.color = 'var(--text-color-secondary)';
+            }
+        }
+
+        // Event Handlers
+        function switchTab(tabName) {
+            appState.activeTab = tabName;
+            
+            $$('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            $$('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            $(tabName + '-content').classList.add('active');
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            
+            if (tabName === 'history') {
+                renderHistory();
+            } else {
+                renderEntries();
+                renderMoodFilters();
+            }
+        }
+
+        function toggleDayExpansion(date) {
+            if (appState.expandedDays.has(date)) {
+                appState.expandedDays.delete(date);
+            } else {
+                appState.expandedDays.add(date);
+            }
+            renderHistory();
+        }
+
+        function setMoodFilter(mood) {
+            appState.filterMood = mood;
+            renderEntries();
+            renderMoodFilters();
+        }
+
+        function clearFilters() {
+            appState.searchQuery = '';
+            appState.filterMood = '';
+            $('search-input').value = '';
+            renderEntries();
+            renderMoodFilters();
+        }
+
+        function editEntry(entryId) {
+            // Implementation for editing entries would go here
+            showToast('编辑功能开发中...', 'info');
+        }
+
+        async function handleCameraCapture() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                showToast('无法访问摄像头：您的浏览器不支持摄像头功能', 'error');
+                return;
+            }
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment' }
+                });
+                
+                // Create camera interface
+                const modal = document.createElement('div');
+                modal.style.cssText = `
+                    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+                    background: rgba(0,0,0,0.9); z-index: 10000; display: flex; 
+                    flex-direction: column; align-items: center; justify-content: center;
+                `;
+                
+                const video = document.createElement('video');
+                video.style.cssText = 'max-width: 90%; max-height: 70%; border-radius: var(--radius-2xl);';
+                video.srcObject = stream;
+                video.autoplay = true;
+                video.playsInline = true;
+                
+                const controls = document.createElement('div');
+                controls.style.cssText = 'margin-top: 20px; display: flex; gap: 20px;';
+                
+                const captureBtn = document.createElement('button');
+                captureBtn.textContent = '拍照';
+                captureBtn.className = 'btn';
+                
+                const cancelBtn = document.createElement('button');
+                cancelBtn.textContent = '取消';
+                cancelBtn.className = 'btn btn-secondary';
+                
+                controls.appendChild(captureBtn);
+                controls.appendChild(cancelBtn);
+                modal.appendChild(video);
+                modal.appendChild(controls);
+                document.body.appendChild(modal);
+                
+                captureBtn.onclick = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(video, 0, 0);
+                    
+                    canvas.toBlob(blob => {
+                        const file = new File([blob], 'camera-photo.jpg', { type: 'image/jpeg' });
+                        handleImageUpload(file);
+                        stream.getTracks().forEach(track => track.stop());
+                        document.body.removeChild(modal);
+                    }, 'image/jpeg', 0.8);
+                };
+                
+                cancelBtn.onclick = () => {
+                    stream.getTracks().forEach(track => track.stop());
+                    document.body.removeChild(modal);
+                };
+                
+            } catch (error) {
+                showToast('无法访问摄像头：' + error.message, 'error');
+            }
+        }
+
+        function handleFileSelect() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    handleImageUpload(file);
+                }
+            };
+            input.click();
+        }
+
+        async function handleImageUpload(file) {
+            if (appState.isSubmitting) return;
+            
+            const textContent = $('entry-textarea').value;
+            appState.isSubmitting = true;
+            updateSubmitButton();
+            
+            const success = await submitEntry(textContent, file);
+            appState.isSubmitting = false;
+            updateSubmitButton();
+        }
+
+        function updateSubmitButton() {
+            const btn = $('submit-entry-btn');
+            const text = $('submit-text');
+            const spinner = $('submit-spinner');
+            
+            if (appState.isSubmitting) {
+                text.textContent = '发送中';
+                spinner.classList.remove('hidden');
+                btn.disabled = true;
+            } else {
+                text.textContent = '发送';
+                spinner.classList.add('hidden');
+                btn.disabled = false;
+            }
+        }
+
+        // Settings Functions
+        function openSettings() {
+            $('config-overlay').style.display = 'block';
+        }
+
+        function closeSettings() {
+            $('config-overlay').style.display = 'none';
+        }
+
+        // Make functions global for onclick handlers
+        window.openSettings = openSettings;
+        window.closeSettings = closeSettings;
+        window.switchTab = switchTab;
+        window.toggleDayExpansion = toggleDayExpansion;
+        window.setMoodFilter = setMoodFilter;
+        window.clearFilters = clearFilters;
+        window.editEntry = editEntry;
+        window.deleteEntry = deleteEntry;
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', async () => {
+            initTheme();
+            
+            // Start countdown timer
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+            
+            // Check authentication
+            const isAuthenticated = await fetchUserInfo();
+            appState.loading = false;
+            
+            hideElement('loading-screen');
+            
+            if (!isAuthenticated) {
+                showElement('login-form');
+                
+                // Login form handlers
+                const passwordInput = $('password-input');
+                const loginBtn = $('login-btn');
+                const loginError = $('login-error');
+                
+                const handleLogin = async (e) => {
+                    if (e) e.preventDefault();
+                    
+                    const password = passwordInput.value.trim();
+                    if (!password) {
+                        loginError.textContent = '请输入密码';
+                        showElement('login-error');
+                        return;
+                    }
+                    
+                    hideElement('login-error');
+                    loginBtn.disabled = true;
+                    loginBtn.innerHTML = '<div class="spinner" style="width: 1rem; height: 1rem;"></div> 登录中...';
+                    
+                    const result = await login(password);
+                    
+                    if (result.success) {
+                        hideElement('login-form');
+                        showElement('main-app');
+                        await fetchEntries();
+                    } else {
+                        loginError.textContent = result.message;
+                        showElement('login-error');
+                        loginBtn.disabled = false;
+                        loginBtn.textContent = '登录';
+                    }
+                };
+                
+                const loginForm = document.getElementById('login-form-element');
+                loginForm.onsubmit = handleLogin;
+                
+            } else {
+                showElement('main-app');
+                await fetchEntries();
+                renderMoodFilters();
+                
+                // Main app event listeners
+                $$('.tab-btn').forEach(btn => {
+                    btn.onclick = () => switchTab(btn.dataset.tab);
+                });
+                
+                $('entry-textarea').oninput = (e) => {
+                    appState.newEntryText = e.target.value;
+                    updateCharCount();
+                };
+                
+                $('submit-entry-btn').onclick = async () => {
+                    if (appState.isSubmitting || !appState.newEntryText.trim()) return;
+                    
+                    appState.isSubmitting = true;
+                    updateSubmitButton();
+                    
+                    const success = await submitEntry(appState.newEntryText);
+                    appState.isSubmitting = false;
+                    updateSubmitButton();
+                };
+                
+                $('camera-btn').onclick = handleCameraCapture;
+                $('upload-btn').onclick = handleFileSelect;
+                
+                $('search-input').oninput = (e) => {
+                    appState.searchQuery = e.target.value;
+                    renderEntries();
+                };
+                
+                $('filter-toggle').onclick = () => {
+                    appState.showFilters = !appState.showFilters;
+                    if (appState.showFilters) {
+                        showElement('filter-panel');
+                        $('filter-toggle').style.backgroundColor = 'color-mix(in srgb, var(--accent-color) 20%, transparent)';
+                    } else {
+                        hideElement('filter-panel');
+                        $('filter-toggle').style.backgroundColor = '';
+                    }
+                };
+                
+                $('show-mood-toggle').onchange = (e) => {
+                    appState.showMoodInHistory = e.target.checked;
+                    renderHistory();
+                };
+                
+                $('manual-summary-btn').onclick = async () => {
+                    if (appState.isGeneratingSummary) return;
+                    
+                    appState.isGeneratingSummary = true;
+                    $('manual-summary-btn').innerHTML = '<div class="spinner" style="width: 1rem; height: 1rem;"></div> 生成中...';
+                    $('manual-summary-btn').disabled = true;
+                    
+                    await generateDailySummary();
+                    
+                    appState.isGeneratingSummary = false;
+                    $('manual-summary-btn').innerHTML = '现在总结';
+                    $('manual-summary-btn').disabled = false;
+                };
+                
+                $('logout-btn').onclick = logout;
+                
+                updateCharCount();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+/* 移动端底部按钮布局优化 - AI-Diary */
+
+/* 重置所有底部标签页按钮的基础样式 */
+@media (max-width: 768px) {
+  
+  /* === 主要标签页容器优化 === */
+  .grid.grid-cols-2[role="tablist"] {
+    /* 容器样式重置 */
+    height: auto !important;
+    border: none !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    background: #f8fafc !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1) !important;
+    padding: 4px !important;
+    margin-bottom: 16px !important;
+    
+    /* 确保按钮等高分布 */
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 4px !important;
+  }
+  
+  /* === 标签页按钮优化 === */
+  [role="tab"] {
+    /* 基础尺寸和排版 */
+    height: 44px !important;
+    border: none !important;
+    border-radius: 8px !important;
+    margin: 0 !important;
+    
+    /* 字体和文本 */
+    font-size: 15px !important;
+    font-weight: 500 !important;
+    line-height: 1.2 !important;
+    
+    /* 布局 */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    
+    /* 过渡效果 */
+    transition: all 0.2s ease-in-out !important;
+    
+    /* 触摸优化 */
+    -webkit-tap-highlight-color: transparent !important;
+    user-select: none !important;
+  }
+  
+  /* === 激活状态样式优化 === */
+  [role="tab"][data-state="active"] {
+    background: #4f46e5 !important;
+    color: white !important;
+    box-shadow: 0 2px 4px 0 rgba(79, 70, 229, 0.3) !important;
+    transform: translateY(-1px) !important;
+  }
+  
+  /* === 非激活状态样式优化 === */
+  [role="tab"][data-state="inactive"] {
+    background: white !important;
+    color: #6b7280 !important;
+    border: 1px solid #e5e7eb !important;
+  }
+  
+  /* === 按钮悬停和点击效果 === */
+  [role="tab"]:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.15) !important;
+  }
+  
+  [role="tab"]:active {
+    transform: translateY(0) !important;
+    transition: transform 0.1s ease-in-out !important;
+  }
+  
+  /* === 特殊情况：如果按钮内容过长 === */
+  [role="tab"] span,
+  [role="tab"] div {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 100% !important;
+  }
+  
+  /* === 修复底部内容区域 === */
+  /* 确保底部内容区域有合适的间距 */
+  .grid.grid-cols-2[role="tablist"] + div,
+  .grid.grid-cols-2[role="tablist"] + .space-y-4,
+  .grid.grid-cols-2[role="tablist"] + .space-y-6 {
+    margin-top: 0 !important;
+    padding-top: 8px !important;
+  }
+  
+  /* === 整体页面底部空间优化 === */
+  /* 确保页面底部有足够的空间 */
+  .container,
+  .max-w-4xl {
+    padding-bottom: 20px !important;
+  }
+  
+  /* === 日记条目列表优化 === */
+  /* 减少日记条目之间的间距，让界面更紧凑 */
+  .space-y-4 > * + * {
+    margin-top: 12px !important;
+  }
+  
+  .space-y-6 > * + * {
+    margin-top: 16px !important;
+  }
+  
+  /* === 其他底部按钮组优化 === */
+  /* 优化其他可能的按钮组布局 */
+  .grid.grid-cols-2 > button:not([role="tab"]) {
+    height: 44px !important;
+    border-radius: 8px !important;
+    font-size: 15px !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease-in-out !important;
+  }
+  
+  /* === 确保无障碍访问 === */
+  [role="tab"]:focus {
+    outline: 2px solid #4f46e5 !important;
+    outline-offset: 2px !important;
+  }
+  
+  /* === 解决可能的样式冲突 === */
+  /* 重置可能干扰的全局样式 */
+  .grid.grid-cols-2[role="tablist"] * {
+    box-sizing: border-box !important;
+  }
+  
+  /* 确保图标和文本垂直居中 */
+  [role="tab"] svg,
+  [role="tab"] i {
+    margin-right: 6px !important;
+    margin-left: 0 !important;
+  }
+}
+
+/* === 超小屏幕优化 (iPhone SE等) === */
+@media (max-width: 375px) {
+  [role="tab"] {
+    height: 40px !important;
+    font-size: 14px !important;
+    padding: 0 8px !important;
+  }
+  
+  .grid.grid-cols-2[role="tablist"] {
+    margin-bottom: 12px !important;
+  }
+}
+
+/* === 大屏手机优化 === */
+@media (min-width: 376px) and (max-width: 768px) {
+  [role="tab"] {
+    height: 48px !important;
+    font-size: 16px !important;
+  }
+}
+
+/* === 修复可能的层级问题 === */
+@media (max-width: 768px) {
+  .grid.grid-cols-2[role="tablist"] {
+    position: relative !important;
+    z-index: 10 !important;
+  }
+}
