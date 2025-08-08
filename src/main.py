@@ -1,8 +1,12 @@
 import os
 import sys
 import asyncio
+import logging
 # DON'T CHANGE THIS !!!
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+
+logging.basicConfig(level=logging.INFO, encoding='utf-8')
+logger = logging.getLogger(__name__)
 
 from flask import Flask, send_from_directory
 from flask_cors import CORS
@@ -324,7 +328,7 @@ def init_default_mcp_servers():
             )
             db.session.add(usermcp_server)
             db.session.commit()
-            print("初始化内置usermcp服务器配置")
+            logger.info("初始化内置usermcp服务器配置")
         
         # 初始化MCP客户端管理器
         from src.mcp.client import get_mcp_manager
@@ -332,7 +336,7 @@ def init_default_mcp_servers():
         asyncio.run(mcp_manager.initialize_builtin_servers())
         
     except Exception as e:
-        print(f"初始化MCP服务器失败: {e}")
+        logger.error(f"初始化MCP服务器失败: {e}")
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
@@ -369,9 +373,9 @@ def upgrade_database():
             with db.engine.connect() as connection:
                 connection.execute(text('ALTER TABLE diary_entries ADD COLUMN is_daily_summary BOOLEAN DEFAULT FALSE'))
                 connection.commit()
-            print("数据库升级完成：添加了 is_daily_summary 字段")
+            logger.info("数据库升级完成：添加了 is_daily_summary 字段")
     except Exception as e:
-        print(f"数据库升级失败: {e}")
+        logger.error(f"数据库升级失败: {e}")
         # 如果升级失败，继续运行（可能字段已存在）
         pass
 
