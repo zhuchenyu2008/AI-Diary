@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>配置设置</title>
-    <link rel="stylesheet" href="assets/index-oWMHbS2h.css">
-    <!-- Tailwind CSS is already included via the assets CSS file -->
+    <!-- Load Tailwind CSS from CDN to ensure utility classes are available -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -19,6 +19,12 @@
         @keyframes fadeOut {
             from { opacity: 1; transform: translateY(0); }
             to { opacity: 0; transform: translateY(10px); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .animate-fade-out {
+            animation: fadeOut 0.3s ease-in-out;
         }
         .toast {
             animation: fadeIn 0.3s, fadeOut 0.3s 2.7s;
