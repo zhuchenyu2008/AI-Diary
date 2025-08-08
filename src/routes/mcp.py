@@ -166,13 +166,10 @@ def toggle_server(server_id):
 def get_memories():
     """获取用户记忆列表"""
     try:
-        # 使用认证记录的ID作为user_id
-        from src.models.diary import Auth
-        auth_record = Auth.query.first()
-        if not auth_record:
+        # 直接从 session 获取用户 ID，避免每次查询数据库
+        user_id = session.get('user_id')
+        if not user_id:
             return jsonify({'error': '未找到用户'}), 404
-            
-        user_id = auth_record.id
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 20, type=int)
         memory_type = request.args.get('type')
@@ -209,13 +206,10 @@ def get_memories():
 def get_memory_stats():
     """获取用户记忆统计"""
     try:
-        # 使用认证记录的ID作为user_id
-        from src.models.diary import Auth
-        auth_record = Auth.query.first()
-        if not auth_record:
+        # 直接从 session 获取用户 ID，避免每次查询数据库
+        user_id = session.get('user_id')
+        if not user_id:
             return jsonify({'error': '未找到用户'}), 404
-            
-        user_id = auth_record.id
         mcp_manager = get_mcp_manager(db.session)
         
         if mcp_manager.builtin_usermcp:
@@ -231,13 +225,10 @@ def get_memory_stats():
 def clear_all_memories():
     """清空所有用户记忆"""
     try:
-        # 使用认证记录的ID作为user_id
-        from src.models.diary import Auth
-        auth_record = Auth.query.first()
-        if not auth_record:
+        # 直接从 session 获取用户 ID
+        user_id = session.get('user_id')
+        if not user_id:
             return jsonify({'error': '未找到用户'}), 404
-
-        user_id = auth_record.id
         deleted_count = UserMemory.query.filter(
             UserMemory.user_id == user_id
         ).delete(synchronize_session=False)
@@ -257,13 +248,10 @@ def clear_all_memories():
 def delete_memory(memory_id):
     """删除指定记忆"""
     try:
-        # 使用认证记录的ID作为user_id
-        from src.models.diary import Auth
-        auth_record = Auth.query.first()
-        if not auth_record:
+        # 直接从 session 获取用户 ID
+        user_id = session.get('user_id')
+        if not user_id:
             return jsonify({'error': '未找到用户'}), 404
-            
-        user_id = auth_record.id
         memory = UserMemory.query.filter(
             UserMemory.id == memory_id,
             UserMemory.user_id == user_id
@@ -282,13 +270,10 @@ def delete_memory(memory_id):
 def delete_memories_batch():
     """批量删除记忆"""
     try:
-        # 使用认证记录的ID作为user_id
-        from src.models.diary import Auth
-        auth_record = Auth.query.first()
-        if not auth_record:
+        # 直接从 session 获取用户 ID
+        user_id = session.get('user_id')
+        if not user_id:
             return jsonify({'error': '未找到用户'}), 404
-            
-        user_id = auth_record.id
         data = request.json
         memory_ids = data.get('memory_ids', [])
         
@@ -315,13 +300,10 @@ def delete_memories_batch():
 def get_execution_logs():
     """获取MCP执行日志"""
     try:
-        # 使用认证记录的ID作为user_id
-        from src.models.diary import Auth
-        auth_record = Auth.query.first()
-        if not auth_record:
+        # 直接从 session 获取用户 ID
+        user_id = session.get('user_id')
+        if not user_id:
             return jsonify({'error': '未找到用户'}), 404
-            
-        user_id = auth_record.id
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 20, type=int)
         server_name = request.args.get('server')
