@@ -38,17 +38,17 @@ def analyze_entry_async(entry_id, text_content, image_path, user_id=None):
         from src.main import app
         with app.app_context():
             analysis = ai_service.analyze_entry(text_content, image_path, user_id)
-            
+
             # 更新数据库 - 确保线程安全
             entry = DiaryEntry.query.get(entry_id)
             if entry:
                 entry.ai_analysis = analysis
                 db.session.commit()
-                print(f"AI分析完成，条目ID: {entry_id}, 分析结果: {analysis[:50]}...")
+                logger.info(f"AI分析完成，条目ID: {entry_id}, 分析结果: {analysis[:50]}...")
             else:
-                print(f"未找到条目ID: {entry_id}")
+                logger.warning(f"未找到条目ID: {entry_id}")
     except Exception as e:
-        print(f"异步AI分析失败: {e}")
+        logger.error(f"异步AI分析失败: {e}")
         # 如果分析失败，将状态更新为错误信息
         try:
             from src.main import app
@@ -168,7 +168,7 @@ def generate_daily_summary():
                 logger.error(f"手动生成总结失败: {e}")
                 summary_text = None
         
-        print(f"生成总结文本: {summary_text}")
+        logger.info(f"生成总结文本: {summary_text}")
         
         # 仅当生成的总结不为空且不包含失败标志时才视为成功
         if summary_text and summary_text.strip() and "失败" not in summary_text and summary_text != "总结内容为空":
@@ -179,11 +179,11 @@ def generate_daily_summary():
             }), 201
         else:
             error_msg = summary_text or '生成总结时出现未知错误'
-            print(f"生成总结失败原因: {error_msg}")
+            logger.error(f"生成总结失败原因: {error_msg}")
             return jsonify({'success': False, 'message': f'生成总结失败: {error_msg}'}), 500
             
     except Exception as e:
-        print(f"生成每日总结失败: {e}")
+        logger.error(f"生成每日总结失败: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @diary_bp.route('/entries', methods=['GET'])
@@ -449,6 +449,6 @@ def get_today_analysis_status():
             'entries': result
         })
     except Exception as e:
-        print(f"获取分析状态失败: {e}")
+        logger.error(f"获取分析状态失败: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
 

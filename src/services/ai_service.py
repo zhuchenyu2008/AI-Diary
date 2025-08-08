@@ -3,10 +3,13 @@ import base64
 import json
 import re
 import asyncio
+import logging
 from openai import NotFoundError, BadRequestError
 from datetime import datetime
 from src.mcp.client import get_mcp_manager
 from src.models.user import db
+
+logger = logging.getLogger(__name__)
 
 class AIService:
     def __init__(self):
@@ -54,7 +57,7 @@ class AIService:
             else:
                 # 配置不完整或缺少密钥，清除已有实例并打印警告
                 if any([self.client, self.api_url, self.api_key, self.model]):
-                    print("AI配置不完整或缺失，已清除旧的AI客户端配置")
+                    logger.warning("AI配置不完整或缺失，已清除旧的AI客户端配置")
                 self.client = None
                 self.api_url = None
                 self.api_key = None
@@ -65,7 +68,7 @@ class AIService:
             self.api_url = None
             self.api_key = None
             self.model = None
-            print(f"加载AI配置失败: {e}")
+            logger.error(f"加载AI配置失败: {e}")
     
     def _encode_image(self, image_path):
         """将图片编码为base64"""
@@ -73,7 +76,7 @@ class AIService:
             with open(image_path, "rb") as image_file:
                 return base64.b64encode(image_file.read()).decode('utf-8')
         except Exception as e:
-            print(f"图片编码失败: {e}")
+            logger.error(f"图片编码失败: {e}")
             return None
 
     def _extract_text_from_message(self, message):
@@ -235,7 +238,7 @@ class AIService:
             return ai_response
             
         except Exception as e:
-            print(f"AI分析失败: {e}")
+            logger.error(f"AI分析失败: {e}")
             return f"AI分析失败: {str(e)}"
     
     def _get_user_context_sync(self, user_id, content):
@@ -255,7 +258,7 @@ class AIService:
                     loop.close()
             return {}
         except Exception as e:
-            print(f"获取用户上下文失败: {e}")
+            logger.error(f"获取用户上下文失败: {e}")
             return {}
     
     async def _get_user_context(self, user_id, content):
@@ -266,7 +269,7 @@ class AIService:
                 return await mcp_manager.query_user_context(user_id, content)
             return {}
         except Exception as e:
-            print(f"获取用户上下文失败: {e}")
+            logger.error(f"获取用户上下文失败: {e}")
             return {}
     
     def _extract_and_store_memories_sync(self, user_id, content, ai_response, image_path=None):
@@ -288,7 +291,7 @@ class AIService:
                     loop.close()
                     
         except Exception as e:
-            print(f"同步提取存储记忆失败: {e}")
+            logger.error(f"同步提取存储记忆失败: {e}")
     
     async def _extract_and_store_memories(self, user_id, content, ai_response, image_path=None):
         """提取并存储用户记忆"""
@@ -311,7 +314,7 @@ class AIService:
                 )
                 
         except Exception as e:
-            print(f"提取存储记忆失败: {e}")
+            logger.error(f"提取存储记忆失败: {e}")
     
     async def _extract_memories_with_ai(self, content, ai_response):
         """使用AI提取记忆信息"""
@@ -359,7 +362,7 @@ class AIService:
                 return self._extract_memories_with_regex(result)
                 
         except Exception as e:
-            print(f"AI提取记忆失败: {e}")
+            logger.error(f"AI提取记忆失败: {e}")
             return []
     
     def _extract_memories_with_regex(self, text):
@@ -388,7 +391,7 @@ class AIService:
             return memories[:3]  # 最多返回3个
             
         except Exception as e:
-            print(f"正则提取记忆失败: {e}")
+            logger.error(f"正则提取记忆失败: {e}")
             return []
     
     def generate_daily_summary(self, entries):
@@ -439,7 +442,7 @@ class AIService:
             )
             
         except Exception as e:
-            print(f"生成日记汇总失败: {e}")
+            logger.error(f"生成日记汇总失败: {e}")
             return f"生成日记汇总失败: {str(e)}"
 
 # 全局AI服务实例

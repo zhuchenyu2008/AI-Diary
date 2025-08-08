@@ -7,7 +7,6 @@ from src.services.telegram_service import telegram_service
 from src.services.time_service import time_service
 import logging
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class SchedulerService:
@@ -139,7 +138,7 @@ class SchedulerService:
             with app.app_context():
                 return self._generate_daily_summary(target_date)
         except Exception as e:
-            print(f"手动生成总结失败: {e}")
+            logger.error(f"手动生成总结失败: {e}")
             return f"服务初始化错误: {str(e)}"
 
     def generate_summary_manually(self, target_date):

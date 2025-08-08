@@ -1,5 +1,8 @@
 import requests
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 class TelegramService:
     def __init__(self):
@@ -27,7 +30,7 @@ class TelegramService:
             else:
                 # 配置不完整，清除旧配置
                 if any([self.bot_token, self.chat_id, self.enabled]):
-                    print("Telegram配置不完整，已重置旧值")
+                    logger.warning("Telegram配置不完整，已重置旧值")
                 self.bot_token = None
                 self.chat_id = None
                 self.enabled = False
@@ -36,7 +39,7 @@ class TelegramService:
             self.bot_token = None
             self.chat_id = None
             self.enabled = False
-            print(f"加载Telegram配置失败: {e}")
+            logger.error(f"加载Telegram配置失败: {e}")
     
     def send_message(self, text):
         """发送消息到Telegram"""
@@ -44,7 +47,7 @@ class TelegramService:
         self._load_config()
         
         if not self.enabled or not self.bot_token or not self.chat_id:
-            print("Telegram服务未启用或配置不完整")
+            logger.warning("Telegram服务未启用或配置不完整")
             return False
         
         try:
@@ -57,16 +60,16 @@ class TelegramService:
             }
             
             response = requests.post(url, json=payload, timeout=10)
-            
+
             if response.status_code == 200:
-                print("Telegram消息发送成功")
+                logger.info("Telegram消息发送成功")
                 return True
             else:
-                print(f"Telegram消息发送失败: {response.status_code} - {response.text}")
+                logger.error(f"Telegram消息发送失败: {response.status_code} - {response.text}")
                 return False
-                
+
         except Exception as e:
-            print(f"发送Telegram消息异常: {e}")
+            logger.error(f"发送Telegram消息异常: {e}")
             return False
     
     def send_daily_summary(self, date, summary_content, entry_count):
@@ -90,9 +93,9 @@ class TelegramService:
 来自杯子日记"""
             
             return self.send_message(message)
-            
+
         except Exception as e:
-            print(f"发送每日汇总失败: {e}")
+            logger.error(f"发送每日汇总失败: {e}")
             return False
     
     def test_connection(self):
