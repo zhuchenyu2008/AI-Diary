@@ -385,9 +385,15 @@ class MCPManager {
         if (!confirm('确定要清空所有记忆吗？此操作不可撤销！')) {
             return;
         }
+        const data = await this.apiRequest('/api/mcp/memories/clear', {
+            method: 'DELETE'
+        });
 
-        // 这里需要实现清空所有记忆的API
-        this.showAlert('功能开发中', 'warning');
+        if (data) {
+            this.showAlert('记忆已全部清空', 'success');
+            this.loadMemoryStats();
+            this.loadMemories();
+        }
     }
 
     showAddServerModal() {
