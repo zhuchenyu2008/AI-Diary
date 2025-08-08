@@ -23,6 +23,9 @@
         .toast {
             animation: fadeIn 0.3s, fadeOut 0.3s 2.7s;
         }
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
         @keyframes spin {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
@@ -137,7 +140,7 @@
 <body class="bg-gray-50 text-gray-800">
 <div class="container mx-auto p-4 sm:p-6 lg:p-8 max-w-4xl">
     <div id="config-section" class="animate-fade-in">
-        <header class="flex items-center justify-between mb-8">
+        <header class="header flex items-center justify-between mb-8">
             <h1 class="text-3xl font-bold text-gray-900">系统配置</h1>
             <button onclick="goBack()" class="text-sm font-medium text-indigo-600 hover:text-indigo-500 transition-colors">
                 返回
