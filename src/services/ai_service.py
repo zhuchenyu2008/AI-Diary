@@ -74,6 +74,35 @@ class AIService:
         except Exception as e:
             print(f"图片编码失败: {e}")
             return None
+
+    def _extract_text_from_message(self, message):
+        """从AI返回的消息中提取纯文本内容，兼容思考类型模型"""
+        if not message:
+            return ""
+
+        content = getattr(message, "content", "")
+
+        # 传统模型直接返回字符串
+        if isinstance(content, str):
+            return content.strip()
+
+        # 思考类型模型可能返回内容列表
+        if isinstance(content, list):
+            text_parts = []
+            for part in content:
+                part_type = getattr(part, "type", None)
+                if isinstance(part, dict):
+                    part_type = part.get("type", part_type)
+                # 跳过纯思考过程，只保留最终文本
+                if part_type and part_type not in ("thinking", "reasoning"):
+                    text = getattr(part, "text", None)
+                    if isinstance(part, dict):
+                        text = part.get("text", text)
+                    if text:
+                        text_parts.append(text)
+            return "".join(text_parts).strip()
+
+        return ""
     
     def analyze_entry(self, text_content=None, image_path=None, user_id=None):
         """分析日记条目（增强版，支持用户上下文）"""
@@ -164,8 +193,8 @@ class AIService:
                 max_tokens=500,
                 temperature=0.7
             )
-            
-            ai_response = response.choices[0].message.content.strip()
+
+            ai_response = self._extract_text_from_message(response.choices[0].message)
             
             # 在后台线程中处理记忆提取（不阻塞响应）
             if user_id:
@@ -288,8 +317,8 @@ class AIService:
                 max_tokens=300,
                 temperature=0.3
             )
-            
-            result = response.choices[0].message.content.strip()
+
+            result = self._extract_text_from_message(response.choices[0].message)
             
             # 尝试解析JSON
             try:
@@ -387,8 +416,8 @@ class AIService:
                 max_tokens=1000,
                 temperature=0.7
             )
-            
-            return response.choices[0].message.content.strip()
+
+            return self._extract_text_from_message(response.choices[0].message)
             
         except Exception as e:
             print(f"生成日记汇总失败: {e}")
