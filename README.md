@@ -100,7 +100,7 @@ docker-compose up -d
 |---|---|---|
 | `ai_api_url` | AI API地址 | `https://api.openai.com/v1` |
 | `ai_api_key` | 您的AI API密钥 | *需要配置* |
-| `ai_model` | AI模型名称 | `gpt-3.5-turbo` （经过实测，目前的中文提示词对于doubao-1-5-thinking-pro模型的使用体验是最佳的）|
+| `ai_model` | AI模型名称 | `gpt-3.5-turbo` （经过实测，目前的中文提示词对于doubao-1-5-vision-pro-32k模型的使用体验是最佳的）|
 | `ai_prompt_template` | AI分析提示词（已集成MCP记忆功能） | 已配置默认提示词，可按需更改 |
 | `ai_summary_prompt` | 每日汇总提示词（已集成MCP记忆功能） | 已配置默认提示词，可按需更改 |
 
