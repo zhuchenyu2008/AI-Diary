@@ -3,6 +3,7 @@ import base64
 import json
 import re
 import asyncio
+from openai import NotFoundError, BadRequestError
 from datetime import datetime
 from src.mcp.client import get_mcp_manager
 from src.models.user import db
@@ -74,6 +75,63 @@ class AIService:
         except Exception as e:
             print(f"图片编码失败: {e}")
             return None
+
+    def _extract_text_from_message(self, message):
+        """从AI返回的消息中提取纯文本内容，兼容思考类型模型"""
+        if not message:
+            return ""
+
+        content = getattr(message, "content", "")
+
+        # 传统模型直接返回字符串
+        if isinstance(content, str):
+            return content.strip()
+
+        # 思考类型模型可能返回内容列表
+        if isinstance(content, list):
+            text_parts = []
+            for part in content:
+                part_type = getattr(part, "type", None)
+                if isinstance(part, dict):
+                    part_type = part.get("type", part_type)
+                # 跳过纯思考过程，只保留最终文本
+                if part_type and part_type not in ("thinking", "reasoning"):
+                    text = getattr(part, "text", None)
+                    if isinstance(part, dict):
+                        text = part.get("text", text)
+                    if text:
+                        text_parts.append(text)
+            return "".join(text_parts).strip()
+
+        return ""
+
+    def _call_ai_api(self, messages, max_tokens, temperature):
+        """调用底层AI接口，兼容Chat Completions和Responses API"""
+        # 优先尝试 Chat Completions 接口
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                max_tokens=max_tokens,
+                temperature=temperature,
+            )
+            return self._extract_text_from_message(response.choices[0].message)
+        except (NotFoundError, BadRequestError, AttributeError):
+            # 若接口不存在或不支持，尝试新的 Responses API
+            response = self.client.responses.create(
+                model=self.model,
+                input=messages,
+                max_output_tokens=max_tokens,
+                temperature=temperature,
+            )
+            # Responses API 提供 output_text 字段作为最终文本
+            if getattr(response, "output_text", None):
+                return response.output_text.strip()
+            # 兼容旧结构，提取第一个输出消息
+            output = getattr(response, "output", None)
+            if output:
+                return self._extract_text_from_message(output[0])
+            return ""
     
     def analyze_entry(self, text_content=None, image_path=None, user_id=None):
         """分析日记条目（增强版，支持用户上下文）"""
@@ -156,16 +214,13 @@ class AIService:
                         "content": text_content or "请进行分析。"
                     }
                 ]
-            
+
             # 调用AI API
-            response = self.client.chat.completions.create(
-                model=self.model,
+            ai_response = self._call_ai_api(
                 messages=messages,
                 max_tokens=500,
                 temperature=0.7
             )
-            
-            ai_response = response.choices[0].message.content.strip()
             
             # 在后台线程中处理记忆提取（不阻塞响应）
             if user_id:
@@ -281,15 +336,11 @@ class AIService:
                 {"role": "system", "content": extraction_prompt},
                 {"role": "user", "content": f"日记内容：{content}\n\nAI理解：{ai_response}"}
             ]
-            
-            response = self.client.chat.completions.create(
-                model=self.model,
+            result = self._call_ai_api(
                 messages=messages,
                 max_tokens=300,
                 temperature=0.3
             )
-            
-            result = response.choices[0].message.content.strip()
             
             # 尝试解析JSON
             try:
@@ -379,16 +430,13 @@ class AIService:
                     "content": f"今天的日记条目：{entries_text}"
                 }
             ]
-            
+
             # 调用AI API
-            response = self.client.chat.completions.create(
-                model=self.model,
+            return self._call_ai_api(
                 messages=messages,
                 max_tokens=1000,
                 temperature=0.7
             )
-            
-            return response.choices[0].message.content.strip()
             
         except Exception as e:
             print(f"生成日记汇总失败: {e}")
