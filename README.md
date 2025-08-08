@@ -278,7 +278,7 @@ AI-Diary/
         ├── mobile-bottom-fix.css # 移动端底部修复样式
         ├── assets/               # 打包资源
         │   ├── index-DUaNkWBt.js # 前端 JavaScript
-        │   └── index-oWMHbS2h.css # 样式文件
+        │   └── index.css         # 样式文件
         └── js/                   # 自定义 JS 模块
             ├── app.js            # 应用脚本
             └── mcp.js            # MCP功能脚本
