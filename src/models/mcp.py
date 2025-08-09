@@ -1,5 +1,6 @@
 from datetime import datetime
 from src.models.user import db
+from src.services.time_service import time_service
 
 class MCPServer(db.Model):
     """MCP服务器配置模型"""
@@ -12,8 +13,8 @@ class MCPServer(db.Model):
     env = db.Column(db.JSON, default=dict)   # 存储环境变量
     enabled = db.Column(db.Boolean, default=True)
     builtin = db.Column(db.Boolean, default=False)  # 是否为内置服务器
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: time_service.get_beijing_time())
+    updated_at = db.Column(db.DateTime, default=lambda: time_service.get_beijing_time(), onupdate=lambda: time_service.get_beijing_time())
 
     def to_dict(self):
         return {
@@ -40,8 +41,8 @@ class UserMemory(db.Model):
     confidence = db.Column(db.Float, default=1.0)  # 置信度 0-1
     source = db.Column(db.String(100), default='ai_analysis')  # 记忆来源
     tags = db.Column(db.JSON, default=list)  # 标签
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: time_service.get_beijing_time())
+    updated_at = db.Column(db.DateTime, default=lambda: time_service.get_beijing_time(), onupdate=lambda: time_service.get_beijing_time())
     
     # 添加复合索引提高查询性能
     __table_args__ = (
@@ -76,7 +77,7 @@ class MCPExecutionLog(db.Model):
     execution_time = db.Column(db.Float)  # 执行时间(秒)
     status = db.Column(db.String(20), default='success')  # success, error
     error_message = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: time_service.get_beijing_time())
 
     def to_dict(self):
         return {

@@ -881,6 +881,9 @@
                 </div>
                 
                 <form id="login-form-element" class="space-y-4">
+                    <!-- 隐藏的用户名字段，用于改善浏览器密码管理和可访问性 -->
+                    <input type="text" name="username" autocomplete="username" style="display: none;" value="user" readonly>
+                    
                     <div class="form-group">
                         <label for="password-input">密码</label>
                         <input type="password" id="password-input" name="password" class="input-glass" placeholder="请输入密码" autocomplete="current-password">
@@ -1075,7 +1078,7 @@
 
     <!-- Settings Overlay -->
     <div id="config-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); backdrop-filter: blur(8px); z-index:9999; display:none; animation:fadeIn 0.3s;">
-        <iframe src="/config.html" style="width:100%; height:100%; border:none; border-radius: var(--radius-2xl); margin: 2rem; width: calc(100% - 4rem); height: calc(100% - 4rem);"></iframe>
+        <iframe src="/config-page" style="width:100%; height:100%; border:none; border-radius: var(--radius-2xl); margin: 2rem; width: calc(100% - 4rem); height: calc(100% - 4rem);"></iframe>
         <button onclick="closeSettings()" style="position: absolute; top: 2rem; right: 2rem; background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-color); padding: 0.5rem; border-radius: var(--radius-full); cursor: pointer; backdrop-filter: blur(10px);">
             <svg style="width: 1.5rem; height: 1.5rem;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M18 6L6 18"></path>
