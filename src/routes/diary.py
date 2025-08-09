@@ -2,13 +2,13 @@ from flask import Blueprint, jsonify, request, session
 from werkzeug.utils import secure_filename
 from src.models.diary import DiaryEntry, DailySummary, db
 from src.services.ai_service import ai_service
+from src.utils.auth import require_auth
 from datetime import datetime, date, timedelta
 from src.services.time_service import time_service
 import logging
 import os
 import uuid
 import threading
-from functools import wraps
 
 logger = logging.getLogger(__name__)
 
@@ -21,42 +21,54 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-def require_auth(f):
-    """认证装饰器，要求用户已登录。使用wraps保留元数据。"""
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not session.get('authenticated', False):
-            return jsonify({'success': False, 'message': '未认证'}), 401
-        return f(*args, **kwargs)
-
-    return decorated_function
-
 def analyze_entry_async(entry_id, text_content, image_path, user_id=None):
-    """异步分析日记条目"""
+    """异步分析日记条目 - 改进线程安全"""
     try:
         # 重新获取数据库连接
         from src.main import app
         with app.app_context():
             analysis = ai_service.analyze_entry(text_content, image_path, user_id)
 
-            # 更新数据库 - 确保线程安全
-            entry = DiaryEntry.query.get(entry_id)
-            if entry:
-                entry.ai_analysis = analysis
-                db.session.commit()
-                logger.info(f"AI分析完成，条目ID: {entry_id}, 分析结果: {analysis[:50]}...")
-            else:
-                logger.warning(f"未找到条目ID: {entry_id}")
+            # 线程安全的数据库更新 - 使用单独的事务
+            try:
+                db.session.begin()
+                entry = DiaryEntry.query.with_for_update().get(entry_id)
+                if entry:
+                    entry.ai_analysis = analysis
+                    db.session.commit()
+                    logger.info(f"AI分析完成，条目ID: {entry_id}, 分析结果: {analysis[:50]}...")
+                else:
+                    logger.info(f"未找到条目ID: {entry_id}")
+                    db.session.rollback()
+            except Exception as db_e:
+                logger.warning(f"数据库更新失败: {db_e}")
+                db.session.rollback()
+                # 如果数据库更新失败，尝试设置错误状态
+                try:
+                    db.session.begin()
+                    entry = DiaryEntry.query.get(entry_id)
+                    if entry:
+                        entry.ai_analysis = f"数据库更新失败: {str(db_e)}"
+                        db.session.commit()
+                except:
+                    pass
     except Exception as e:
-        logger.error(f"异步AI分析失败: {e}")
+        logger.warning(f"异步AI分析失败: {e}")
         # 如果分析失败，将状态更新为错误信息
         try:
             from src.main import app
             with app.app_context():
-                entry = DiaryEntry.query.get(entry_id)
-                if entry:
-                    entry.ai_analysis = f"AI分析失败: {str(e)}"
-                    db.session.commit()
+                try:
+                    db.session.begin()
+                    entry = DiaryEntry.query.get(entry_id)
+                    if entry:
+                        entry.ai_analysis = f"AI分析失败: {str(e)}"
+                        db.session.commit()
+                    else:
+                        db.session.rollback()
+                except Exception as db_e:
+                    logger.error(f"错误状态更新失败: {db_e}")
+                    db.session.rollback()
         except:
             pass
 
@@ -141,12 +153,6 @@ def generate_daily_summary():
         if not entries:
             return jsonify({'success': False, 'message': '该日期没有日记条目'}), 400
         
-        # 对于手动触发，允许生成多个总结（不限制）
-        # 注释掉原有的限制检查
-        # existing_summary = DailySummary.query.filter_by(date=date_obj).first()
-        # if existing_summary:
-        #     return jsonify({'success': False, 'message': '该日期已有每日总结'}), 400
-        
         # 导入调度服务并生成总结（强制更新已存在的总结）
         from src.services.scheduler_service import scheduler_service
         
@@ -154,18 +160,25 @@ def generate_daily_summary():
         from src.main import app
         with app.app_context():
             try:
+                # 在单个事务中完成所有操作
+                db.session.begin()
+                
                 # 删除现有的总结以实现重新生成
                 existing_summary = DailySummary.query.filter_by(date=date_obj).first()
                 if existing_summary:
                     db.session.delete(existing_summary)
-                    db.session.commit()
                     logger.info(f"删除现有总结，准备重新生成日期 {date_obj} 的汇总")
                 
                 # 生成新的总结
                 summary_content = scheduler_service._generate_daily_summary(date_obj, force_update=True)
                 summary_text = summary_content or "总结内容为空"
+                
+                # 提交事务
+                db.session.commit()
+                
             except Exception as e:
                 logger.error(f"手动生成总结失败: {e}")
+                db.session.rollback()
                 summary_text = None
         
         logger.info(f"生成总结文本: {summary_text}")

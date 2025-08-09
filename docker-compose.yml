@@ -8,5 +8,5 @@ services:
     volumes:
       - ./src/database:/app/src/database
     environment:
-      SECRET_KEY: diary_app_secret_key_2025
+      SECRET_KEY: ${SECRET_KEY:-diary_app_secret_key_2025}
     restart: unless-stopped

@@ -211,6 +211,9 @@
         <div class="bg-white p-6 rounded-xl shadow-md mt-8">
             <h3 class="text-xl font-semibold text-gray-900 border-b pb-3 mb-4">密码管理</h3>
             <form id="password-change-form" onsubmit="changePassword(event)">
+                <!-- 隐藏的用户名字段，用于改善浏览器密码管理和可访问性 -->
+                <input type="text" name="username" autocomplete="username" style="display: none;" value="user" readonly>
+                
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label for="current_password" class="block text-sm font-medium text-gray-700">当前密码</label>
@@ -247,28 +250,105 @@ function showToast(message, isSuccess = true) {
     }, 3000);
 }
 
+async function checkAuthAndLoadConfig() {
+    try {
+        // 先检查认证状态
+        const authRes = await fetch('/api/auth/check');
+        const authData = await authRes.json();
+        
+        if (authData.authenticated) {
+            // 已认证，加载配置
+            await loadConfig();
+        } else {
+            // 未认证，显示提示
+            console.log('用户未认证，等待登录');
+            // 可以选择显示一个提示或者重定向到主页
+            // showToast('请先登录后再访问设置页面', false);
+        }
+    } catch (error) {
+        console.log('认证检查失败:', error);
+    }
+}
+
 async function loadConfig() {
     try {
-        const res = await fetch('/api/configs');
+        const res = await fetch('/api/configs', {
+            credentials: 'include'
+        });
+        
+        if (res.status === 401) {
+            // 如果未认证，尝试通过访问主页面来获取认证状态
+            console.log('检测到未认证状态，尝试获取认证...');
+            
+            // 访问主页面的认证检查接口
+            const authRes = await fetch('/api/auth/check', {
+                credentials: 'include'
+            });
+            
+            if (authRes.status === 401) {
+                // 如果认证检查也失败，说明确实未登录
+                console.log('确认未登录状态');
+                // 可以显示一个登录提示
+                document.body.innerHTML = `
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                        <div style="text-align: center; padding: 2rem; background: white; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 400px;">
+                            <h2 style="color: #1f2937; margin-bottom: 1rem;">需要登录</h2>
+                            <p style="color: #6b7280; margin-bottom: 1.5rem;">请先在主页面登录后再访问配置页面</p>
+                            <button onclick="window.parent.closeSettings()" style="background: #3b82f6; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 0.5rem; cursor: pointer; font-size: 1rem;">
+                                返回主页
+                            </button>
+                        </div>
+                    </div>
+                `;
+                return;
+            } else {
+                // 认证状态正常，重新尝试加载配置
+                console.log('认证状态正常，重新加载配置...');
+                const retryRes = await fetch('/api/configs', {
+                    credentials: 'include'
+                });
+                
+                if (retryRes.ok) {
+                    const retryData = await retryRes.json();
+                    if (retryData.success) {
+                        fillConfigForm(retryData.configs);
+                    }
+                    return;
+                } else {
+                    throw new Error(`重试后仍无法加载配置: ${retryRes.statusText}`);
+                }
+            }
+        }
+        
         if (!res.ok) throw new Error(`无法加载配置: ${res.statusText}`);
         const data = await res.json();
         if (data.success) {
-            const map = {};
-            data.configs.forEach(c => map[c.key] = c.value);
-            document.getElementById('ai_api_url').value = map['ai_api_url'] || '';
-            document.getElementById('ai_api_key').value = map['ai_api_key'] || '';
-            document.getElementById('ai_model').value = map['ai_model'] || '';
-            document.getElementById('ai_prompt_template').value = map['ai_prompt_template'] || '';
-            document.getElementById('ai_summary_prompt').value = map['ai_summary_prompt'] || '';
-            document.getElementById('telegram_bot_token').value = map['telegram_bot_token'] || '';
-            document.getElementById('telegram_chat_id').value = map['telegram_chat_id'] || '';
-            document.getElementById('telegram_enabled').checked = map['telegram_enabled'] === 'true';
+            fillConfigForm(data.configs);
         } else {
             throw new Error(data.message || '加载配置失败');
         }
     } catch (error) {
-        showToast(error.message, false);
+        console.log('配置加载失败:', error.message);
+        if (!error.message.includes('401') && !error.message.includes('未登录')) {
+            showToast(error.message, false);
+        }
     }
+}
+
+function fillConfigForm(configs) {
+    const map = {};
+    configs.forEach(c => map[c.key] = c.value);
+    
+    document.getElementById('ai_api_url').value = map['ai_api_url'] || '';
+    document.getElementById('ai_api_key').value = map['ai_api_key'] || '';
+    document.getElementById('ai_model').value = map['ai_model'] || '';
+    document.getElementById('ai_prompt_template').value = map['ai_prompt_template'] || '';
+    document.getElementById('ai_summary_prompt').value = map['ai_summary_prompt'] || '';
+    document.getElementById('telegram_bot_token').value = map['telegram_bot_token'] || '';
+    document.getElementById('telegram_chat_id').value = map['telegram_chat_id'] || '';
+    document.getElementById('telegram_enabled').checked = map['telegram_enabled'] === 'true';
+    
+    console.log('配置加载成功');
 }
 
 const loadingIcon = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -296,7 +376,8 @@ async function saveConfig() {
         const res = await fetch('/api/configs', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(configs)
+            body: JSON.stringify(configs),
+            credentials: 'include'  // 确保包含认证cookie
         });
         const data = await res.json();
         if (data.success) {
@@ -335,7 +416,8 @@ async function changePassword(event) {
             body: JSON.stringify({ 
                 current_password: currentPassword,
                 new_password: newPassword 
-            })
+            }),
+            credentials: 'include'  // 确保包含认证cookie
         });
         const data = await res.json();
         if (data.success) {
@@ -360,7 +442,8 @@ async function testAI() {
         const res = await fetch('/api/admin/test-ai', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text: '连接测试' })
+            body: JSON.stringify({ text: '连接测试' }),
+            credentials: 'include'  // 确保包含认证cookie
         });
         const data = await res.json();
         if (res.ok && data.success) {
@@ -384,7 +467,10 @@ async function testTelegram() {
     showToast('正在测试 Telegram 连接...');
 
     try {
-        const res = await fetch('/api/admin/test-telegram', { method: 'POST' });
+        const res = await fetch('/api/admin/test-telegram', { 
+            method: 'POST',
+            credentials: 'include'  // 确保包含认证cookie
+        });
         const data = await res.json();
         if (res.ok && data.success) {
             showToast(`Telegram 测试成功: ${data.message}`);
@@ -407,8 +493,10 @@ function goBack(){
     }
 }
 
-// 页面加载时直接加载配置，不需要登录验证
-loadConfig();
+// 页面加载时直接加载配置
+document.addEventListener('DOMContentLoaded', function() {
+    loadConfig();
+});
 </script>
 </body>
 </html>
