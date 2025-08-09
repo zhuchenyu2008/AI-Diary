@@ -141,7 +141,7 @@ MCP (Model Context Protocol) 功能为AI提供了长期记忆能力，让AI能�
 - 前端UI开发提示词工程：https://github.com/KuekHaoYang/AI-Prompt-Protocols
 - 提示词优化工具：https://github.com/linshenkx/prompt-optimizer
 - 记忆功能mcp：https://github.com/LSTM-Kirigaya/usermcp
-- InstCopilot API：claude-sonnet-4-20250514：280k+tokens
+- InstCopilot API：claude-sonnet-4-20250514：400k+tokens
 - manus：10k+积分
 - code-X
 - jules
@@ -174,6 +174,24 @@ A: 所有记忆信息都存储在您本地的数据库中，不会上传到任�
 本项目提供了一套完整的RESTful API。详细信息请参阅 [API_Documentation.md](./API_Documentation.md)。
 
 ## 📝 更新日志
+
+### v4.1.0 修复bug与改进
+- **修复bug**: 修复首次打开用户未认证导致的设置页面空白
+- **修复bug**: 修复数据库不一致性问题-MCP模型时间
+- **修复bug**: 修复线程安全问题-异步AI分析
+- **修复bug**: 修复安全密钥暴露问题
+- **修复bug**: 修复事务管理不当问题
+- **改进**: 统一require_auth装饰器
+- **修复bug**: 修复异常处理不完善问题
+- **修复bug**: 修复S0L注入风险
+- **改进**: 清理未使用的用户模型
+- **改进**:统一配置管理
+- **改进**:外部化长提示词
+- **改进**:统一API响应格式
+- **改进**:加强输入验证
+- **修复bug**: 修复循环导入风险
+- **重构**: 重构全局单例模式
+- **修复bug**: 修复日志级别问题
 
 ### v4.0.0 MCP记忆功能集成
 - **🧠 MCP记忆系统**: 集成Model Context Protocol，AI具备长期记忆能力
