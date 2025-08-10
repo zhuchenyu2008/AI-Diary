@@ -242,28 +242,24 @@ class AIService:
             return f"AI分析失败: {str(e)}"
     
     def _get_user_context_sync(self, user_id, content):
-        """获取用户上下文信息（同步版本）- 改进资源管理"""
-        loop = None
+        """获取用户上下文信息（同步版本）"""
         try:
             mcp_manager = get_mcp_manager(db.session)
             if mcp_manager and mcp_manager.builtin_usermcp:
-                # 创建临时事件循环运行异步代码，确保正确关闭
+                # 创建临时事件循环运行异步代码
+                import asyncio
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
-                return loop.run_until_complete(
-                    mcp_manager.query_user_context(user_id, content)
-                )
+                try:
+                    return loop.run_until_complete(
+                        mcp_manager.query_user_context(user_id, content)
+                    )
+                finally:
+                    loop.close()
             return {}
         except Exception as e:
             logger.error(f"获取用户上下文失败: {e}")
             return {}
-        finally:
-            # 确保事件循环被正确关闭
-            if loop:
-                try:
-                    loop.close()
-                except Exception as close_e:
-                    logger.error(f"关闭事件循环失败: {close_e}")
     
     async def _get_user_context(self, user_id, content):
         """获取用户上下文信息"""
@@ -277,32 +273,25 @@ class AIService:
             return {}
     
     def _extract_and_store_memories_sync(self, user_id, content, ai_response, image_path=None):
-        """同步版本的记忆提取和存储（用于线程调用）- 避免循环导入"""
-        loop = None
+        """同步版本的记忆提取和存储（用于线程调用）"""
         try:
-            # 避免循环导入 - 延迟导入
-            import sys
-            if 'src.main' in sys.modules:
-                app = sys.modules['src.main'].app
-                with app.app_context():
-                    # 创建新的事件循环（因为线程中没有事件循环），确保正确关闭
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
+            # 在Flask应用上下文中运行异步代码
+            from src.main import app
+            with app.app_context():
+                import asyncio
+                
+                # 创建新的事件循环（因为线程中没有事件循环）
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                try:
                     loop.run_until_complete(
                         self._extract_and_store_memories(user_id, content, ai_response, image_path)
                     )
-            else:
-                logger.warning("应用上下文不可用，跳过记忆存储")
+                finally:
+                    loop.close()
                     
         except Exception as e:
             logger.error(f"同步提取存储记忆失败: {e}")
-        finally:
-            # 确保事件循环被正确关闭
-            if loop:
-                try:
-                    loop.close()
-                except Exception as close_e:
-                    logger.error(f"关闭事件循环失败: {close_e}")
     
     async def _extract_and_store_memories(self, user_id, content, ai_response, image_path=None):
         """提取并存储用户记忆"""
