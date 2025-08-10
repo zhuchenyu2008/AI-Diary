@@ -2,11 +2,20 @@ from flask import Blueprint, request, jsonify, session
 from src.models.mcp import MCPServer, UserMemory, MCPExecutionLog
 from src.models.user import db
 from src.mcp.client import get_mcp_manager
-from src.utils.auth import require_auth
+from functools import wraps
 import json
 import asyncio
 
 mcp_bp = Blueprint('mcp', __name__)
+
+def require_auth(f):
+    """认证装饰器"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('authenticated', False):
+            return jsonify({'error': '未授权'}), 401
+        return f(*args, **kwargs)
+    return decorated_function
 
 @mcp_bp.route('/servers', methods=['GET'])
 @require_auth
@@ -15,35 +24,22 @@ def get_servers():
     try:
         servers = MCPServer.query.all()
         mcp_manager = get_mcp_manager(db.session)
-        
-        # 获取服务器状态，添加异常处理
-        try:
-            server_status = mcp_manager.get_server_status()
-        except Exception as status_error:
-            # 如果获取状态失败，使用空列表作为默认值
-            server_status = []
-            print(f"获取服务器状态失败: {status_error}")
+        server_status = mcp_manager.get_server_status()
         
         # 创建状态映射
         status_map = {s['name']: s for s in server_status}
         
         result = []
         for server in servers:
-            try:
-                server_dict = server.to_dict()
-                if server.name in status_map:
-                    server_dict['status'] = status_map[server.name]['status']
-                else:
-                    server_dict['status'] = 'stopped'
-                result.append(server_dict)
-            except Exception as e:
-                print(f"处理服务器 {server.name} 失败: {e}")
-                # 跳过有问题的服务器，继续处理其他服务器
-                continue
+            server_dict = server.to_dict()
+            if server.name in status_map:
+                server_dict['status'] = status_map[server.name]['status']
+            else:
+                server_dict['status'] = 'stopped'
+            result.append(server_dict)
             
         return jsonify({'servers': result})
     except Exception as e:
-        print(f"获取服务器列表失败: {e}")
         return jsonify({'error': str(e)}), 500
 
 @mcp_bp.route('/servers', methods=['POST'])
