@@ -27,31 +27,34 @@ def analyze_entry_async(entry_id, text_content, image_path, user_id=None):
         # 重新获取数据库连接
         from src.main import app
         with app.app_context():
-            analysis = ai_service.analyze_entry(text_content, image_path, user_id)
-
-            # 线程安全的数据库更新 - 使用单独的事务
             try:
-                db.session.begin()
-                entry = DiaryEntry.query.with_for_update().get(entry_id)
-                if entry:
-                    entry.ai_analysis = analysis
-                    db.session.commit()
-                    logger.info(f"AI分析完成，条目ID: {entry_id}, 分析结果: {analysis[:50]}...")
-                else:
-                    logger.info(f"未找到条目ID: {entry_id}")
-                    db.session.rollback()
-            except Exception as db_e:
-                logger.warning(f"数据库更新失败: {db_e}")
-                db.session.rollback()
-                # 如果数据库更新失败，尝试设置错误状态
+                analysis = ai_service.analyze_entry(text_content, image_path, user_id)
+
+                # 线程安全的数据库更新 - 使用单独的事务
                 try:
-                    db.session.begin()
                     entry = DiaryEntry.query.get(entry_id)
                     if entry:
-                        entry.ai_analysis = f"数据库更新失败: {str(db_e)}"
+                        entry.ai_analysis = analysis
                         db.session.commit()
-                except:
-                    pass
+                        logger.info(f"AI分析完成，条目ID: {entry_id}, 分析结果: {analysis[:50]}...")
+                    else:
+                        logger.info(f"未找到条目ID: {entry_id}")
+                        db.session.rollback()
+                except Exception as db_e:
+                    logger.warning(f"数据库更新失败: {db_e}")
+                    db.session.rollback()
+                    # 如果数据库更新失败，尝试设置错误状态
+                    try:
+                        entry = DiaryEntry.query.get(entry_id)
+                        if entry:
+                            entry.ai_analysis = f"数据库更新失败: {str(db_e)}"
+                            db.session.commit()
+                    except Exception as e2:
+                        logger.error(f"错误状态更新失败: {e2}")
+                        db.session.rollback()
+            finally:
+                # 清理线程本地的 Session，防止资源泄漏
+                db.session.remove()
     except Exception as e:
         logger.warning(f"异步AI分析失败: {e}")
         # 如果分析失败，将状态更新为错误信息
@@ -59,7 +62,6 @@ def analyze_entry_async(entry_id, text_content, image_path, user_id=None):
             from src.main import app
             with app.app_context():
                 try:
-                    db.session.begin()
                     entry = DiaryEntry.query.get(entry_id)
                     if entry:
                         entry.ai_analysis = f"AI分析失败: {str(e)}"
@@ -69,6 +71,9 @@ def analyze_entry_async(entry_id, text_content, image_path, user_id=None):
                 except Exception as db_e:
                     logger.error(f"错误状态更新失败: {db_e}")
                     db.session.rollback()
+                finally:
+                    # 清理线程本地的 Session
+                    db.session.remove()
         except:
             pass
 
@@ -156,30 +161,9 @@ def generate_daily_summary():
         # 导入调度服务并生成总结（强制更新已存在的总结）
         from src.services.scheduler_service import scheduler_service
         
-        # 使用应用上下文手动调用生成总结，强制更新已存在的总结
-        from src.main import app
-        with app.app_context():
-            try:
-                # 在单个事务中完成所有操作
-                db.session.begin()
-                
-                # 删除现有的总结以实现重新生成
-                existing_summary = DailySummary.query.filter_by(date=date_obj).first()
-                if existing_summary:
-                    db.session.delete(existing_summary)
-                    logger.info(f"删除现有总结，准备重新生成日期 {date_obj} 的汇总")
-                
-                # 生成新的总结
-                summary_content = scheduler_service._generate_daily_summary(date_obj, force_update=True)
-                summary_text = summary_content or "总结内容为空"
-                
-                # 提交事务
-                db.session.commit()
-                
-            except Exception as e:
-                logger.error(f"手动生成总结失败: {e}")
-                db.session.rollback()
-                summary_text = None
+        # 直接调用内部已处理事务的生成逻辑，避免嵌套事务
+        summary_content = scheduler_service._generate_daily_summary(date_obj, force_update=True)
+        summary_text = summary_content or "总结内容为空"
         
         logger.info(f"生成总结文本: {summary_text}")
         
@@ -464,4 +448,3 @@ def get_today_analysis_status():
     except Exception as e:
         logger.error(f"获取分析状态失败: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
-
