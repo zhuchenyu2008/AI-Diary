@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request, session
-from src.models.diary import Config, db
+from src.models.diary import Config
+from src.models.user import db
 from functools import wraps
 
 config_bp = Blueprint('config', __name__)
@@ -171,4 +172,3 @@ def init_default_configs():
         
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
-

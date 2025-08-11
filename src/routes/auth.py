@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request, session
 from werkzeug.security import check_password_hash, generate_password_hash
-from src.models.diary import Auth, db
+from src.models.diary import Auth
+from src.models.user import db
 import hashlib
 
 auth_bp = Blueprint('auth', __name__)
@@ -129,4 +130,3 @@ def change_password():
 
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
-

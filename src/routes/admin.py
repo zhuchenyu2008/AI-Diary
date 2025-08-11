@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request, session
-from src.models.diary import Config, db
+from src.models.diary import Config
+from src.models.user import db
 from src.services.ai_service import ai_service
 from src.services.telegram_service import telegram_service
 from src.services.scheduler_service import scheduler_service
@@ -133,7 +134,7 @@ def system_status():
         telegram_configured = telegram_service.enabled
         
         # 检查调度器状态
-        scheduler_running = scheduler_service.running
+        scheduler_running = scheduler_service.scheduler.running
         
         return jsonify({
             'success': True,
@@ -147,4 +148,3 @@ def system_status():
         
     except Exception as e:
         return jsonify({'success': False, 'message': f'获取系统状态失败: {str(e)}'}), 500
-

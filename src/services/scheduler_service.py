@@ -1,7 +1,8 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from datetime import date, timedelta
-from src.models.diary import DailySummary, db, DiaryEntry
+from src.models.diary import DailySummary, DiaryEntry
+from src.models.user import db
 from src.services.ai_service import ai_service
 from src.services.telegram_service import telegram_service
 from src.services.time_service import time_service

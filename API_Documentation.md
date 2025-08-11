@@ -2,15 +2,15 @@
 
 ## 概述
 
-AI日记是一个智能日记应用，提供了完整的RESTful API接口，支持日记条目管理、AI分析、配置管理、用户认证、MCP记忆管理等功能。
+AI日记提供完整的 RESTful API 接口，覆盖日记条目管理、AI分析、配置管理、用户认证、MCP 记忆管理、系统运维等能力。本文档与当前实现保持一致，列出可用端点与真实返回结构。
 
 ## 基础信息
 
-- **基础URL**: `http://localhost:5000/api`
-- **认证方式**: Session-based authentication
-- **数据格式**: JSON
-- **字符编码**: UTF-8
-- **时间基准**: 所有时间戳均采用北京时间 (UTC+8)
+- 基础URL: `http://localhost:5000/api`
+- 认证方式: 基于 Session 的认证
+- 数据格式: JSON（除文件上传外）
+- 字符编码: UTF-8
+- 时间基准: 默认使用北京时间 (UTC+8)
 
 ## 认证接口 (Auth)
 
@@ -19,32 +19,27 @@ AI日记是一个智能日记应用，提供了完整的RESTful API接口，支�
 POST /auth/login
 ```
 
-**请求体**:
+请求体:
 ```json
-{
-  "password": "1234"
-}
+{ "password": "1234" }
 ```
 
-**响应**:
+响应:
 ```json
-{
-  "success": true,
-  "message": "登录成功"
-}
+{ "success": true, "message": "登录成功" }
 ```
+
+说明:
+- 首次无密码时会自动创建默认密码 `1234`（使用安全哈希存储）。
 
 ### 登出
 ```
 POST /auth/logout
 ```
 
-**响应**:
+响应:
 ```json
-{
-  "success": true,
-  "message": "登出成功"
-}
+{ "success": true, "message": "登出成功" }
 ```
 
 ### 检查认证状态
@@ -52,11 +47,9 @@ POST /auth/logout
 GET /auth/check
 ```
 
-**响应**:
+响应:
 ```json
-{
-  "authenticated": true
-}
+{ "authenticated": true }
 ```
 
 ### 修改密码
@@ -64,25 +57,18 @@ GET /auth/check
 POST /auth/change-password
 ```
 
-**请求体**:
+请求体:
 ```json
-{
-  "current_password": "1234",
-  "new_password": "5678"
-}
+{ "current_password": "1234", "new_password": "5678" }
 ```
 
-字段说明：
+字段:
+- `current_password`: 当系统已设置过密码时必须提供；首次设置可省略。
+- `new_password`: 仅允许 1–4 位数字。
 
-- `current_password`：当前密码。当系统已经设置过密码时必须提供，用于验证旧密码是否正确；如果系统尚未设置密码（首次设置），则可省略。
-- `new_password`：新密码，仅允许 1–4 位数字。
-
-**响应**:
+响应:
 ```json
-{
-  "success": true,
-  "message": "密码修改成功"
-}
+{ "success": true, "message": "密码修改成功" }
 ```
 
 ## 日记接口 (Diary)
@@ -92,22 +78,16 @@ POST /auth/change-password
 POST /diary/entries
 ```
 
-**请求体** (multipart/form-data):
-- `text_content`: 文字内容 (可选)
-- `image`: 图片文件 (可选)
+请求体 (multipart/form-data):
+- `text_content`: 文字内容（可选）
+- `image`: 图片文件（可选）
 
-**响应**:
+响应:
 ```json
 {
   "success": true,
   "message": "日记条目创建成功",
-  "entry": {
-    "id": 1,
-    "text_content": "今天天气很好",
-    "image_path": "uploads/image.jpg",
-    "ai_analysis": "AI理解中...",
-    "timestamp": "2025-07-30T16:45:00"
-  }
+  "entry": { "id": 1, "text_content": "...", "image_path": "uploads/xxx.jpg", "ai_analysis": "AI理解中...", "is_daily_summary": false, "timestamp": "...", "created_at": "..." }
 }
 ```
 
@@ -116,69 +96,44 @@ POST /diary/entries
 GET /diary/entries?page=1&per_page=20&date=2025-07-30&view=history
 ```
 
-**查询参数**:
-- `page`: 页码 (默认: 1)
-- `per_page`: 每页条目数 (默认: 20)
-- `date`: 日期过滤 (格式: YYYY-MM-DD)
-- `view`: 视图模式 (可选值: `history`)
-  - 不设置或设置为其他值：时间线视图，排除每日总结
-  - `history`：历史日记视图，包含每日总结和普通条目
+查询参数:
+- `page`: 页码（默认 1）
+- `per_page`: 每页条目数（默认 20）
+- `date`: 按日期过滤（YYYY-MM-DD）
+- `view`: 视图模式；未设或非`history`为时间线视图（排除每日总结），`history` 包含每日总结
 
-**响应**:
+响应:
 ```json
 {
   "success": true,
-  "entries": [
-    {
-      "id": 66,
-      "text_content": null,
-      "image_path": null,
-      "ai_analysis": "亲爱的朋友，你好呀！今天看到你留下了这么多有趣的记录...",
-      "is_daily_summary": true,
-      "timestamp": "2025-08-03T23:59:59",
-      "created_at": "2025-08-03T23:59:59"
-    },
-    {
-      "id": 58,
-      "text_content": "123",
-      "image_path": null,
-      "ai_analysis": "你好呀！我看到你发来了一个数字\"123\"...",
-      "is_daily_summary": false,
-      "timestamp": "2025-08-03T13:11:43",
-      "created_at": "2025-08-03T13:11:44"
-    }
-  ],
-  "pagination": {
-    "page": 1,
-    "per_page": 20,
-    "total": 2,
-    "pages": 1
-  }
+  "entries": [ ... ],
+  "pagination": { "page": 1, "per_page": 20, "total": 2, "pages": 1, "has_next": false, "has_prev": false }
 }
 ```
-
-**字段说明**:
-- `is_daily_summary`: 布尔值，标识是否为每日总结
-- `text_content`: 普通条目有用户输入内容，每日总结为null
-- `ai_analysis`: 普通条目为AI分析，每日总结为完整的日记汇总
 
 ### 获取单个日记条目
 ```
 GET /diary/entries/{entry_id}
 ```
 
-**响应**:
+响应:
 ```json
-{
-  "success": true,
-  "entry": {
-    "id": 1,
-    "text_content": "今天天气很好",
-    "image_path": "uploads/image.jpg",
-    "ai_analysis": "用户在享受美好的天气",
-    "timestamp": "2025-07-30T16:45:00"
-  }
-}
+{ "success": true, "entry": { ... } }
+```
+
+### 更新日记条目（仅文本）
+```
+PUT /diary/entries/{entry_id}
+```
+
+请求体:
+```json
+{ "text_content": "新的内容" }
+```
+
+响应:
+```json
+{ "success": true, "message": "日记条目更新成功", "entry": { ... } }
 ```
 
 ### 删除日记条目
@@ -186,74 +141,220 @@ GET /diary/entries/{entry_id}
 DELETE /diary/entries/{entry_id}
 ```
 
-**响应**:
+响应:
 ```json
-{
-  "success": true,
-  "message": "日记条目删除成功"
-}
+{ "success": true, "message": "日记条目删除成功" }
 ```
 
 ### 手动生成每日总结
-系统会在每天北京时间0点自动生成前一天的总结，以下接口可用于手动触发或重新生成：
+系统会在每天北京时间 00:00 自动生成前一天的总结。此接口用于按日期手动生成或重新生成。
 ```
-POST /diary/generate-summary
+POST /diary/generate-daily-summary
 ```
 
-**请求体**:
+请求体:
 ```json
-{
-  "date": "2025-08-03"
-}
+{ "date": "2025-08-03" }
 ```
 
-**响应**:
+响应:
 ```json
-{
-  "success": true,
-  "message": "每日总结生成成功",
-  "summary": {
-    "id": 66,
-    "text_content": null,
-    "ai_analysis": "亲爱的朋友，你好呀！今天看到你留下了这么多有趣的记录...",
-    "is_daily_summary": true,
-    "timestamp": "2025-08-03T23:59:59",
-    "created_at": "2025-08-03T23:59:59"
-  }
-}
+{ "success": true, "message": "每日总结生成成功", "summary": "总结文本内容" }
 ```
 
-**说明**:
-- 如果不提供date参数，默认生成当日总结
-- 如果该日期已有总结，将返回错误信息
-- 生成的总结会自动保存到数据库
-- 总结内容包含当日活动、情绪分析和生活感悟
+说明:
+- 必须提供 `date`（YYYY-MM-DD）。生成成功后会保存到数据库，并写入对应的每日总结条目。
 
-### 获取AI分析状态
+### 获取AI分析状态（单条）
 ```
 GET /diary/entries/{entry_id}/analysis-status
 ```
 
-**响应**:
+响应:
 ```json
-{
-  "success": true,
-  "entry_id": 1,
-  "ai_analysis": "用户在享受美好的天气",
-  "is_analyzing": false
-}
+{ "success": true, "entry_id": 1, "ai_analysis": "...", "is_analyzing": false }
 ```
 
-### 获取今日所有条目的AI分析状态
+### 获取今日所有条目AI分析状态
 ```
 GET /diary/entries/today/analysis-status
 ```
 
-**响应**:
+响应:
 ```json
-{
-  "success": true,
-  "entries": [
+{ "success": true, "entries": [ { "id": 1, "ai_analysis": "...", "is_analyzing": false, "timestamp": "..." } ] }
+```
+
+## MCP 接口 (Servers & Memories)
+
+### 服务器列表
+```
+GET /mcp/servers
+```
+
+响应:
+```json
+{ "servers": [ { "id": 1, "name": "usermcp", "builtin": true, "enabled": true, "status": "running", ... } ] }
+```
+
+### 创建服务器
+```
+POST /mcp/servers
+```
+
+请求体:
+```json
+{ "name": "my-mcp-server", "command": "python", "args": ["-m","my_pkg"], "env": {"API_KEY":"xxx"}, "enabled": true }
+```
+
+响应:
+```json
+{ "message": "服务器配置创建成功", "server": { ... } }
+```
+
+### 更新服务器
+```
+PUT /mcp/servers/{server_id}
+```
+
+响应:
+```json
+{ "message": "服务器配置更新成功", "server": { ... } }
+```
+
+### 删除服务器
+```
+DELETE /mcp/servers/{server_id}
+```
+
+响应:
+```json
+{ "message": "服务器配置删除成功" }
+```
+
+### 启动/停止服务器
+```
+POST /mcp/servers/{server_id}/toggle
+```
+
+响应（示例）:
+```json
+{ "message": "服务器 usermcp 启动成功" }
+```
+
+### 获取用户记忆列表
+```
+GET /mcp/memories?type=preference&page=1&per_page=20&search=关键字
+```
+
+响应:
+```json
+{ "memories": [ ... ], "total": 1, "pages": 1, "current_page": 1 }
+```
+
+注：当前版本未提供公开的记忆创建/更新API；记忆主要由AI自动提取写入。
+
+### 获取记忆统计
+```
+GET /mcp/memories/stats
+```
+
+响应:
+```json
+{ "stats": { "total_count": 25, "type_stats": [ ... ], "recent_memories": [ ... ] } }
+```
+
+### 删除单条记忆
+```
+DELETE /mcp/memories/{memory_id}
+```
+
+响应:
+```json
+{ "message": "记忆删除成功" }
+```
+
+### 批量删除记忆
+```
+DELETE /mcp/memories/batch
+```
+
+请求体:
+```json
+{ "memory_ids": [1,2,3] }
+```
+
+响应:
+```json
+{ "message": "成功删除 3 条记忆", "deleted_count": 3 }
+```
+
+### 清空所有记忆
+```
+DELETE /mcp/memories/clear
+```
+
+响应:
+```json
+{ "message": "成功清空 25 条记忆", "deleted_count": 25 }
+```
+
+### 获取MCP执行日志
+```
+GET /mcp/logs?page=1&per_page=50
+```
+
+响应:
+```json
+{ "logs": [ { "id": 1, "server_name": "usermcp", "tool_name": "usermcp_query_user_profile", "user_id": 1, "input_data": { ... }, "output_data": { ... }, "execution_time": 0.01, "status": "success", "error_message": null, "created_at": "..." } ], "total": 1, "pages": 1, "current_page": 1 }
+```
+
+## 管理接口 (Admin)
+
+### 测试AI连接
+```
+POST /admin/test-ai
+```
+
+### 测试Telegram连接
+```
+POST /admin/test-telegram
+```
+
+### 手动生成指定日期总结
+```
+POST /admin/generate-summary
+```
+
+### 重新加载服务配置
+```
+POST /admin/reload-services
+```
+
+### 系统状态
+```
+GET /admin/system-status
+```
+
+响应:
+```json
+{ "success": true, "status": { "ai_configured": false, "telegram_configured": false, "scheduler_running": true, "timestamp": "2025-08-11T10:00:00" } }
+```
+
+## 错误处理
+
+常见HTTP状态码：
+- 200 成功 / 201 创建成功 / 204 删除成功
+- 400 请求参数错误 / 401 未认证 / 404 资源不存在 / 500 服务器内部错误
+
+返回结构说明：不同模块的返回结构略有差异（例如 MCP 列表接口无统一 `success` 字段），本文档已按当前实现示例化展示。
+
+## 版本信息
+
+- API版本: v1.1.1
+- 最后更新: 2025-08-11
+- 维护者: Manus AI
+- 变更摘要: 修正文档与实现差异；更新手动总结接口；补充MCP删除/清空/日志接口；新增Admin接口说明。
     {
       "id": 1,
       "ai_analysis": "用户在享受美好的天气",
@@ -1010,4 +1111,3 @@ fetch('/api/mcp/logs?page=1&per_page=10')
 - **最后更新**: 2025-08-06
 - **维护者**: Manus AI
 - **新增功能**: MCP记忆管理、用户偏好学习、AI个性化分析
-

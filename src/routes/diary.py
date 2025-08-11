@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request, session
 from werkzeug.utils import secure_filename
-from src.models.diary import DiaryEntry, DailySummary, db
+from src.models.diary import DiaryEntry, DailySummary
+from src.models.user import db
 from src.services.ai_service import ai_service
 from datetime import datetime, date, timedelta
 from src.services.time_service import time_service
@@ -451,4 +452,3 @@ def get_today_analysis_status():
     except Exception as e:
         logger.error(f"获取分析状态失败: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
-
