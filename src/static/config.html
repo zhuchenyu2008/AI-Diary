@@ -249,7 +249,9 @@ function showToast(message, isSuccess = true) {
 
 async function loadConfig() {
     try {
-        const res = await fetch('/api/configs');
+        const res = await fetch('/api/configs', {
+            credentials: 'include'
+        });
         if (!res.ok) throw new Error(`无法加载配置: ${res.statusText}`);
         const data = await res.json();
         if (data.success) {
@@ -296,7 +298,8 @@ async function saveConfig() {
         const res = await fetch('/api/configs', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(configs)
+            body: JSON.stringify(configs),
+            credentials: 'include'
         });
         const data = await res.json();
         if (data.success) {
@@ -335,7 +338,8 @@ async function changePassword(event) {
             body: JSON.stringify({ 
                 current_password: currentPassword,
                 new_password: newPassword 
-            })
+            }),
+            credentials: 'include'
         });
         const data = await res.json();
         if (data.success) {
@@ -360,7 +364,8 @@ async function testAI() {
         const res = await fetch('/api/admin/test-ai', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text: '连接测试' })
+            body: JSON.stringify({ text: '连接测试' }),
+            credentials: 'include'
         });
         const data = await res.json();
         if (res.ok && data.success) {
@@ -384,7 +389,7 @@ async function testTelegram() {
     showToast('正在测试 Telegram 连接...');
 
     try {
-        const res = await fetch('/api/admin/test-telegram', { method: 'POST' });
+        const res = await fetch('/api/admin/test-telegram', { method: 'POST', credentials: 'include' });
         const data = await res.json();
         if (res.ok && data.success) {
             showToast(`Telegram 测试成功: ${data.message}`);

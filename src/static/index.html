@@ -1075,7 +1075,7 @@
 
     <!-- Settings Overlay -->
     <div id="config-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); backdrop-filter: blur(8px); z-index:9999; display:none; animation:fadeIn 0.3s;">
-        <iframe src="/config.html" style="width:100%; height:100%; border:none; border-radius: var(--radius-2xl); margin: 2rem; width: calc(100% - 4rem); height: calc(100% - 4rem);"></iframe>
+        <iframe id="config-iframe" data-src="/config.html" loading="lazy" style="width:100%; height:100%; border:none; border-radius: var(--radius-2xl); margin: 2rem; width: calc(100% - 4rem); height: calc(100% - 4rem);"></iframe>
         <button onclick="closeSettings()" style="position: absolute; top: 2rem; right: 2rem; background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-color); padding: 0.5rem; border-radius: var(--radius-full); cursor: pointer; backdrop-filter: blur(10px);">
             <svg style="width: 1.5rem; height: 1.5rem;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M18 6L6 18"></path>
@@ -1912,7 +1912,28 @@
 
         // Settings Functions
         function openSettings() {
-            $('config-overlay').style.display = 'block';
+            const overlay = $('config-overlay');
+            const iframe = document.getElementById('config-iframe');
+            if (iframe) {
+                const currentSrc = iframe.getAttribute('src');
+                if (!currentSrc || currentSrc === 'about:blank') {
+                    const target = iframe.getAttribute('data-src') || '/config.html';
+                    iframe.setAttribute('src', target);
+                } else {
+                    try {
+                        if (iframe.contentWindow && typeof iframe.contentWindow.loadConfig === 'function') {
+                            iframe.contentWindow.loadConfig();
+                        } else {
+                            // Fallback: force reload to re-fetch with session
+                            iframe.src = currentSrc;
+                        }
+                    } catch (e) {
+                        // Cross-origin should not happen, but fallback to reload
+                        iframe.src = currentSrc;
+                    }
+                }
+            }
+            overlay.style.display = 'block';
         }
 
         function closeSettings() {
