@@ -301,6 +301,16 @@ def init_default_configs():
             'key': 'telegram_enabled',
             'value': 'false',
             'description': '是否启用Telegram推送'
+        },
+        {
+            'key': 'notion_api_token',
+            'value': '',
+            'description': 'Notion Integration Token'
+        },
+        {
+            'key': 'notion_enabled',
+            'value': 'false',
+            'description': '是否启用Notion同步'
         }
     ]
     
@@ -387,12 +397,18 @@ if __name__ == '__main__':
         init_default_mcp_servers()  # 初始化MCP服务器
     
     # 启动定时任务服务
+    # 注意：Flask 在 debug 模式下会启动一个 reloader 父进程和一个子进程，
+    # 如果不做保护会导致定时任务启动两次，从而产生重复的每日总结/推送。
     from src.services.scheduler_service import scheduler_service
-    scheduler_service.start(app)
+    should_start_scheduler = (
+        os.environ.get('WERKZEUG_RUN_MAIN') == 'true'  # 仅在reloader子进程启动
+        or not app.debug  # 非debug模式直接启动
+    )
+    if should_start_scheduler:
+        scheduler_service.start(app)
     
     try:
         app.run(host='0.0.0.0', port=5000, debug=True)
     finally:
         # 停止定时任务服务
         scheduler_service.stop()
-

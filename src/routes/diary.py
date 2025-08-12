@@ -3,6 +3,7 @@ from werkzeug.utils import secure_filename
 from src.models.diary import DiaryEntry, DailySummary
 from src.models.user import db
 from src.services.ai_service import ai_service
+from src.services.notion_service import notion_service
 from datetime import datetime, date, timedelta
 from src.services.time_service import time_service
 import logging
@@ -451,4 +452,74 @@ def get_today_analysis_status():
         })
     except Exception as e:
         logger.error(f"获取分析状态失败: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@diary_bp.route('/notion/sync', methods=['POST'])
+@require_auth
+def sync_to_notion():
+    """手动同步指定日期到Notion"""
+    try:
+        data = request.get_json()
+        date_str = data.get('date')
+        
+        if not date_str:
+            return jsonify({'success': False, 'message': '请提供日期'}), 400
+        
+        # 解析日期
+        try:
+            target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            return jsonify({'success': False, 'message': '日期格式错误'}), 400
+        
+        # 获取该日期的总结
+        summary = DailySummary.query.filter_by(date=target_date).first()
+        if not summary:
+            return jsonify({'success': False, 'message': '该日期没有总结内容'}), 400
+        
+        # 执行同步
+        success, message = notion_service.sync_daily_summary(target_date, summary.summary_content)
+        
+        return jsonify({
+            'success': success,
+            'message': message
+        }), 200 if success else 500
+        
+    except Exception as e:
+        logger.error(f"手动同步到Notion失败: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@diary_bp.route('/notion/sync-status/<string:date_str>', methods=['GET'])
+@require_auth
+def get_notion_sync_status(date_str):
+    """获取指定日期的Notion同步状态"""
+    try:
+        target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        
+        # 检查同步日志
+        from src.models.diary import Config
+        log_key = f"notion_sync_log_{target_date.strftime('%Y%m%d')}"
+        log_config = Config.query.filter_by(key=log_key).first()
+        
+        if log_config and log_config.value:
+            import json
+            log_data = json.loads(log_config.value)
+            return jsonify({
+                'success': True,
+                'synced': log_data.get('status') == 'success',
+                'status': log_data.get('status'),
+                'page_id': log_data.get('page_id'),
+                'error_message': log_data.get('error_message'),
+                'timestamp': log_data.get('timestamp')
+            })
+        else:
+            return jsonify({
+                'success': True,
+                'synced': False,
+                'status': 'not_synced'
+            })
+            
+    except ValueError:
+        return jsonify({'success': False, 'message': '日期格式错误'}), 400
+    except Exception as e:
+        logger.error(f"获取同步状态失败: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500

@@ -2,7 +2,7 @@
 
 ## 概述
 
-AI日记提供完整的 RESTful API 接口，覆盖日记条目管理、AI分析、配置管理、用户认证、MCP 记忆管理、系统运维等能力。本文档与当前实现保持一致，列出可用端点与真实返回结构。
+AI日记提供完整的 RESTful API 接口，覆盖日记条目管理、AI分析、配置管理、用户认证、MCP 记忆管理、Notion集成、系统运维等能力。本文档与当前实现保持一致，列出可用端点与真实返回结构。
 
 ## 基础信息
 
@@ -164,6 +164,8 @@ POST /diary/generate-daily-summary
 
 说明:
 - 必须提供 `date`（YYYY-MM-DD）。生成成功后会保存到数据库，并写入对应的每日总结条目。
+- 执行行为：如该日已有总结，会先删除后重建（只保留一条最新总结）。
+- 推送同步：生成成功后会触发 Telegram 推送与 Notion 同步（若已启用且配置完整）。
 
 ### 获取AI分析状态（单条）
 ```
@@ -788,9 +790,96 @@ POST /configs/init-defaults
 ```json
 {
   "success": true,
-  "message": "成功初始化 8 个默认配置"
+  "message": "成功初始化 10 个默认配置"
 }
 ```
+
+## Notion 集成接口
+
+### 一键自动配置 Notion
+```
+POST /notion/auto-setup
+```
+
+**请求体**:
+```json
+{
+  "token": "secret_xxxxxxxxxxxxx"
+}
+```
+
+**响应**:
+```json
+{
+  "success": true,
+  "message": "自动配置成功",
+  "page_title": "日记",
+  "database_id": "12345678-1234-1234-1234-123456789abc",
+  "setup_completed": true
+}
+```
+
+**功能说明**:
+- 验证 Notion Integration Token 有效性
+- 自动搜索或创建"日记"页面
+- 在页面下自动创建标准数据库结构
+- 自动配置字段映射和选项
+- 保存配置并启用同步功能
+
+### 获取 Notion 配置状态
+```
+GET /notion/setup-status
+```
+
+**响应**:
+```json
+{
+  "success": true,
+  "configured": true,
+  "has_token": true,
+  "has_database": true,
+  "enabled": true,
+  "page_title": "日记",
+  "database_name": "日记数据库"
+}
+```
+
+### 测试 Notion 连接
+```
+GET /notion/test
+```
+
+**响应**:
+```json
+{
+  "success": true,
+  "message": "连接成功，用户: John Doe"
+}
+```
+
+**错误响应**:
+```json
+{
+  "success": false,
+  "message": "API Token未配置"
+}
+```
+
+### 字段映射与行为
+
+同步每日总结时写入以下字段：
+- Name（title）= 日记 YYYY年MM月DD日
+- Date（date）= 当日日期（date-only）
+- Content（rich_text）= 总结全文
+- Mood（select）= 基于关键词识别
+- Tags（multi_select）= 基于关键词提取，最多3个
+- Word Count（number）= 正文字数
+- Created By（select）= AI自动生成
+
+说明：
+- 不再写入“Summary/摘要”字段；若旧数据库有该字段，将不会更新。
+- 查重策略：在配置的 database_id 中按 Date 精确查询，如存在则更新第一条，否则创建新页面；不会自动清理重复页面。
+- 自动配置：每次调用会在目标页面下新建数据库并切换配置指向该库；如需复用旧库，请在配置中手动设置其 database_id。
 
 ## 管理接口 (Admin)
 
@@ -1107,7 +1196,7 @@ fetch('/api/mcp/logs?page=1&per_page=10')
 
 ## 版本信息
 
-- **API版本**: v1.1
-- **最后更新**: 2025-08-06
+- **API版本**: v1.1.2
+- **最后更新**: 2025-08-12
 - **维护者**: Manus AI
-- **新增功能**: MCP记忆管理、用户偏好学习、AI个性化分析
+- **变更摘要**: 修正 Notion 接口文档以匹配实现；手动生成总结说明新增推送与同步；去除“Summary/摘要”字段描述；说明调度按北京时间运行。

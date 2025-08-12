@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request, session
 from src.models.diary import Config
 from src.models.user import db
+from src.services.notion_service import notion_service
 from functools import wraps
 
 config_bp = Blueprint('config', __name__)
@@ -152,6 +153,16 @@ def init_default_configs():
                 'key': 'telegram_enabled',
                 'value': 'false',
                 'description': '是否启用Telegram推送'
+            },
+            {
+                'key': 'notion_api_token',
+                'value': '',
+                'description': 'Notion Integration Token'
+            },
+            {
+                'key': 'notion_enabled',
+                'value': 'false',
+                'description': '是否启用Notion同步'
             }
         ]
         
@@ -170,5 +181,59 @@ def init_default_configs():
             'message': f'成功初始化 {created_count} 个默认配置'
         })
         
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@config_bp.route('/notion/auto-setup', methods=['POST'])
+@require_auth
+def notion_auto_setup():
+    """一键自动配置Notion集成"""
+    try:
+        data = request.get_json()
+        token = data.get('token')
+        
+        if not token:
+            return jsonify({'success': False, 'message': '请提供Notion Token'}), 400
+        
+        # 执行自动配置
+        result = notion_service.auto_setup(token)
+        
+        return jsonify({
+            'success': True,
+            'message': '自动配置成功',
+            'page_title': result['page_title'],
+            'database_id': result['database_id'],
+            'setup_completed': True
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False, 
+            'message': f'配置失败: {str(e)}'
+        }), 500
+
+@config_bp.route('/notion/setup-status', methods=['GET'])
+@require_auth
+def get_notion_setup_status():
+    """获取Notion配置状态"""
+    try:
+        status = notion_service.get_setup_status()
+        return jsonify({
+            'success': True,
+            **status
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@config_bp.route('/notion/test', methods=['GET'])
+@require_auth
+def test_notion_connection():
+    """测试Notion连接"""
+    try:
+        success, message = notion_service.test_connection()
+        return jsonify({
+            'success': success,
+            'message': message
+        }), 200 if success else 400
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
