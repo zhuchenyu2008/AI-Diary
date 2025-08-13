@@ -169,7 +169,7 @@ Notion 集成功能让您可以将每日总结自动同步到 Notion 工作区�
 - 前端UI开发提示词工程：https://github.com/KuekHaoYang/AI-Prompt-Protocols
 - 提示词优化工具：https://github.com/linshenkx/prompt-optimizer
 - 记忆功能mcp：https://github.com/LSTM-Kirigaya/usermcp
-- InstCopilot API：claude-sonnet-4-20250514：280k+tokens
+- InstCopilot API：claude-sonnet-4-20250514：710M+tokens
 - manus：10k+积分
 - code-X；code-x cli
 - jules
