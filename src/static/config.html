@@ -208,6 +208,81 @@
             </div>
         </div>
 
+        <!-- Notion集成配置 -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mt-8">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">Notion 日记同步</h3>
+                <div class="flex items-center space-x-2">
+                    <span id="notion-status" class="text-sm text-gray-500">未配置</span>
+                    <div class="w-2 h-2 bg-gray-400 rounded-full" id="notion-indicator"></div>
+                </div>
+            </div>
+            
+            <div class="space-y-4">
+                <!-- Token输入 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Notion Integration Token
+                        <a href="https://www.notion.com/my-integrations" target="_blank" 
+                           class="ml-2 text-blue-600 hover:text-blue-800 text-xs">获取Token →</a>
+                    </label>
+                    <input type="password" id="notion_api_token" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                           placeholder="输入你的Notion Integration Token">
+                </div>
+                
+                <!-- 启用开关 -->
+                <div class="flex items-center justify-between">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">启用Notion同步</label>
+                        <p class="text-xs text-gray-500">启用后会自动同步每日总结到Notion</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="notion_enabled" class="sr-only peer">
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                </div>
+                
+                <!-- 一键配置按钮 -->
+                <div class="flex space-x-3">
+                    <button onclick="autoSetupNotion()" 
+                            class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                            id="setup-btn">
+                        <span class="flex items-center justify-center">
+                            <svg class="w-4 h-4 mr-2 hidden animate-spin" id="setup-spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            自动配置 Notion
+                        </span>
+                    </button>
+                    <button onclick="testNotionConnection()" 
+                            class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                            id="test-btn">测试连接</button>
+                </div>
+                
+                <!-- 配置状态显示 -->
+                <div class="bg-gray-50 rounded-md p-3 hidden" id="notion-setup-result">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <svg class="w-5 h-5 text-green-500" id="success-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                            <svg class="w-5 h-5 text-red-500 hidden" id="error-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h4 class="text-sm font-medium text-gray-900" id="result-title">配置完成</h4>
+                            <p class="text-sm text-gray-600 mt-1" id="result-message">
+                                已自动创建"日记"页面和数据库，可以开始同步了！
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="bg-white p-6 rounded-xl shadow-md mt-8">
             <h3 class="text-xl font-semibold text-gray-900 border-b pb-3 mb-4">密码管理</h3>
             <form id="password-change-form" onsubmit="changePassword(event)">
@@ -265,6 +340,11 @@ async function loadConfig() {
             document.getElementById('telegram_bot_token').value = map['telegram_bot_token'] || '';
             document.getElementById('telegram_chat_id').value = map['telegram_chat_id'] || '';
             document.getElementById('telegram_enabled').checked = map['telegram_enabled'] === 'true';
+            document.getElementById('notion_api_token').value = map['notion_api_token'] || '';
+            document.getElementById('notion_enabled').checked = map['notion_enabled'] === 'true';
+            
+            // 加载Notion配置状态
+            loadNotionStatus();
         } else {
             throw new Error(data.message || '加载配置失败');
         }
@@ -293,7 +373,9 @@ async function saveConfig() {
             { key: 'ai_summary_prompt', value: document.getElementById('ai_summary_prompt').value },
             { key: 'telegram_bot_token', value: document.getElementById('telegram_bot_token').value },
             { key: 'telegram_chat_id', value: document.getElementById('telegram_chat_id').value },
-            { key: 'telegram_enabled', value: document.getElementById('telegram_enabled').checked ? 'true' : 'false' }
+            { key: 'telegram_enabled', value: document.getElementById('telegram_enabled').checked ? 'true' : 'false' },
+            { key: 'notion_api_token', value: document.getElementById('notion_api_token').value },
+            { key: 'notion_enabled', value: document.getElementById('notion_enabled').checked ? 'true' : 'false' }
         ];
         const res = await fetch('/api/configs', {
             method: 'POST',
@@ -401,6 +483,126 @@ async function testTelegram() {
     } finally {
         button.disabled = false;
         button.innerHTML = originalContent;
+    }
+}
+
+// Notion相关功能
+async function loadNotionStatus() {
+    try {
+        const response = await fetch('/api/notion/setup-status', {
+            credentials: 'include'
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            if (result.configured) {
+                updateNotionStatus('已配置', 'green');
+                if (result.page_title) {
+                    showSetupResult(true, '配置完成', 
+                        `已连接到页面"${result.page_title}"，Notion同步功能正常。`);
+                }
+            } else {
+                updateNotionStatus('未配置', 'gray');
+            }
+        }
+    } catch (error) {
+        console.error('加载Notion状态失败:', error);
+    }
+}
+
+async function autoSetupNotion() {
+    const token = document.getElementById('notion_api_token').value.trim();
+    if (!token) {
+        showToast('请输入 Notion Token', false);
+        return;
+    }
+    
+    const setupBtn = document.getElementById('setup-btn');
+    const spinner = document.getElementById('setup-spinner');
+    
+    // 显示加载状态
+    setupBtn.disabled = true;
+    spinner.classList.remove('hidden');
+    
+    try {
+        const response = await fetch('/api/notion/auto-setup', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            credentials: 'include',
+            body: JSON.stringify({ token: token })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showSetupResult(true, '自动配置成功！', 
+                `已创建页面"${result.page_title}"和数据库，可以开始同步日记了。`);
+            updateNotionStatus('已配置', 'green');
+            
+            // 自动启用同步
+            document.getElementById('notion_enabled').checked = true;
+            showToast('Notion集成配置成功！', true);
+        } else {
+            showSetupResult(false, '配置失败', result.message);
+        }
+    } catch (error) {
+        showSetupResult(false, '配置失败', '网络错误，请重试');
+    } finally {
+        setupBtn.disabled = false;
+        spinner.classList.add('hidden');
+    }
+}
+
+async function testNotionConnection() {
+    try {
+        const response = await fetch('/api/notion/test', {
+            credentials: 'include'
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast(result.message, true);
+            updateNotionStatus('连接正常', 'green');
+        } else {
+            showToast(result.message, false);
+            updateNotionStatus('连接失败', 'red');
+        }
+    } catch (error) {
+        showToast('测试连接失败: ' + error.message, false);
+        updateNotionStatus('连接失败', 'red');
+    }
+}
+
+function showSetupResult(success, title, message) {
+    const resultDiv = document.getElementById('notion-setup-result');
+    const successIcon = document.getElementById('success-icon');
+    const errorIcon = document.getElementById('error-icon');
+    const titleEl = document.getElementById('result-title');
+    const messageEl = document.getElementById('result-message');
+    
+    resultDiv.classList.remove('hidden');
+    successIcon.classList.toggle('hidden', !success);
+    errorIcon.classList.toggle('hidden', success);
+    titleEl.textContent = title;
+    messageEl.textContent = message;
+}
+
+function updateNotionStatus(status, color) {
+    const statusEl = document.getElementById('notion-status');
+    const indicator = document.getElementById('notion-indicator');
+    
+    statusEl.textContent = status;
+    
+    // 重置所有可能的颜色类
+    indicator.className = 'w-2 h-2 rounded-full';
+    
+    // 添加对应的颜色类
+    if (color === 'green') {
+        indicator.classList.add('bg-green-500');
+    } else if (color === 'red') {
+        indicator.classList.add('bg-red-500');
+    } else {
+        indicator.classList.add('bg-gray-400');
     }
 }
 
