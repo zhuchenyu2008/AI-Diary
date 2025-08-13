@@ -200,9 +200,6 @@ A: 在设置页面的"Notion 日记同步"区域，输入您的Notion Integratio
 **Q: Notion自动配置失败怎么办？**
 A: 请确保Token有效且具有创建页面的权限。如果失败，可以手动在Notion中创建名为"日记"的页面，然后重试配置。
 
-**Q: 可以同步历史日记到Notion吗？**
-A: 可以。在历史日记页面找到想要同步的日期，使用手动同步功能即可将指定日期的总结同步到Notion。
-
 ## 📚 API 文档
 
 本项目提供了一套完整的RESTful API。详细信息请参阅 [API_Documentation.md](./API_Documentation.md)。
