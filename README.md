@@ -171,12 +171,12 @@ Notion 集成功能让您可以将每日总结自动同步到 Notion 工作区�
 - 记忆功能mcp：https://github.com/LSTM-Kirigaya/usermcp
 - InstCopilot API：claude-sonnet-4-20250514：280k+tokens
 - manus：10k+积分
-- code-X
+- code-X；code-x cli
 - jules
 - 硅基流动：moonshotai/Kimi-K2-Instruct：1000M+tokens
 - Any Router：claude-sonnet-4-20250514：16M+tokens
 - Your API: claude-sonnet-4-20250514，claude-opus-4-20250514：344k+tokens
-- ChatGPT-4o；ChatGPT-o3
+- ChatGPT-4o；ChatGPT-o3；ChatGPT-5
 - 我的朋友们：JiaHao，汤圆不圆
 - 酷狗音乐
 
